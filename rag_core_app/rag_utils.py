@@ -23,12 +23,17 @@ def extract_text_with_ocr(file_path):
     """
     Fallback method: Converts PDF pages to images and reads text using Tesseract.
     """
+    poppler_path = os.getenv("POPPLER_PATH")
+
+    # Check if path exists or if it's None (for Linux/Mac where it might be in PATH automatically)
+    if poppler_path:
+        images = convert_from_path(file_path, poppler_path=poppler_path)
+    else:
+        # Fallback for systems where poppler is in the system PATH
+        images = convert_from_path(file_path)
     try:
         print("Attempting OCR (this might take a while)...")
-        # You might need to specify the poppler_path here if on Windows
-        # images = convert_from_path(file_path, poppler_path=r'C:\Program Files\poppler-xx\bin')
-        images = convert_from_path(file_path, poppler_path=r'C:\Program Files\poppler-25.12.0\Library\bin') 
-        
+        # You might need to specify the poppler_path here if on Windows 
         full_text = ""
         for i, image in enumerate(images):
             text = pytesseract.image_to_string(image)

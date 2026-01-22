@@ -11,5 +11,5 @@ venv/
 env/
 
 # Large AI Data & User Uploads
-ChatBot/faiss_index/
-ChatBot/media/documents/
+faiss_index/
+media/documents/

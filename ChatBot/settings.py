@@ -9,7 +9,10 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 from pathlib import Path
 
@@ -30,10 +33,10 @@ STATICFILES_FINDERS = (
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k(tul$up!)#j4e6yo_z_5wj&@t*+tbp(7+&yml-=93r$xh$72g'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -87,10 +90,10 @@ WSGI_APPLICATION = 'ChatBot.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ragbot',
+        'NAME': os.getenv('DB_NAME', 'ragbot'),
         'HOST': '127.0.0.1',
-        'USER': 'root',
-        'PASSWORD': '',
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'PORT': '3306',
     }
 }

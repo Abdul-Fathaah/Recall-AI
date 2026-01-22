@@ -12,4 +12,4 @@ env/
 
 # Large AI Data & User Uploads
 faiss_index/
-media/documents/
+media/

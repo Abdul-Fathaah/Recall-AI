@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome | Stitch : Your Personal AI Assistant</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <div
+        style="position: absolute; top: 10%; left: 20%; width: 300px; height: 300px; background: #764ba2; filter: blur(150px); opacity: 0.6; z-index: -1;">
+    </div>
+    <div
+        style="position: absolute; bottom: 10%; right: 20%; width: 300px; height: 300px; background: #667eea; filter: blur(150px); opacity: 0.6; z-index: -1;">
+    </div>
+
+    <div class="glass-card">
+        <h1
+            style="font-size: 2.5em; margin-bottom: 10px; background: linear-gradient(to right, #a18cd1, #fbc2eb); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Stitch : Your Personal AI Assistant</h1>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Your private, intelligent AI assistant with visual
+            memory.</p>
+
+        <a href="{% url 'login' %}" class="glass-btn" style="background: var(--accent); border: none;">Login</a>
+        <a href="{% url 'register' %}" class="glass-btn">Create Account</a>
+    </div>
+</body>
+
+</html>

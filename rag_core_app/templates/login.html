@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <div class="glass-card">
+        <h2 style="margin-bottom: 20px;">Welcome Back</h2>
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Username" class="glass-input" required>
+            <input type="password" name="password" placeholder="Password" class="glass-input" required>
+
+            <button type="submit" class="glass-btn"
+                style="background: var(--accent); border: none; margin-top: 20px;">Sign In</button>
+        </form>
+
+        <p style="margin-top: 20px; font-size: 0.9em; color: var(--text-muted);">
+            New here? <a href="{% url 'register' %}" style="color: #a6c0fe;">Create an account</a>
+        </p>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,203 @@
+/* GLASSMORPHISM THEME */
+:root {
+    --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --accent: #667eea;
+    --accent-hover: #764ba2;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* --- GLASS CARD (Used for Login/Landing) --- */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* --- BUTTONS & INPUTS --- */
+.glass-btn {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.1);
+    border: var(--glass-border);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.glass-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+}
+
+.glass-input {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0;
+    background: rgba(0, 0, 0, 0.2);
+    border: var(--glass-border);
+    border-radius: 10px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.glass-input:focus {
+    border-color: var(--accent);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+/* --- CHAT LAYOUT --- */
+.chat-container {
+    display: flex;
+    width: 90vw;
+    height: 90vh;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    border: var(--glass-border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--glass-shadow);
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    background: rgba(0, 0, 0, 0.2);
+    border-right: var(--glass-border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-item {
+    display: block;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.history-item.active {
+    background: rgba(102, 126, 234, 0.3);
+    border: 1px solid var(--accent);
+    color: white;
+}
+
+/* MAIN CHAT */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.chat-header {
+    padding: 20px;
+    border-bottom: var(--glass-border);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message {
+    max-width: 80%;
+    padding: 12px 18px;
+    border-radius: 18px;
+    line-height: 1.5;
+    font-size: 15px;
+}
+
+.user-msg {
+    align-self: flex-end;
+    background: rgba(102, 126, 234, 0.4);
+    border: 1px solid rgba(166, 192, 254, 0.2);
+    border-bottom-right-radius: 4px;
+}
+
+.bot-msg {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.1);
+    border: var(--glass-border);
+    border-bottom-left-radius: 4px;
+}
+
+/* INPUT AREA */
+.input-area {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: var(--glass-border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Markdown Styles */
+.bot-msg strong {
+    color: #8fd3f4;
+}
+
+.bot-msg pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 5px;
+    overflow-x: auto;
+}
+
+.bot-msg ul {
+    margin-left: 20px;
+}

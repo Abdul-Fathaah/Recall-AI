@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Personal Gemini</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+
+    <div style="display:none;">
+        <form id="csrf-form">{% csrf_token %}</form>
+    </div>
+
+    <div class="chat-container">
+
+        <div class="sidebar">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-weight: 300;">History</h3>
+                <a href="{% url 'logout' %}" style="font-size: 0.8em; color: #ff6b6b; text-decoration: none;">Logout</a>
+            </div>
+
+            <a href="{% url 'home' %}" class="glass-btn" style="text-align: center; margin-bottom: 20px;">+ New Chat</a>
+
+            <div style="flex: 1; overflow-y: auto;">
+                {% for session in sessions %}
+                <a href="{% url 'home' %}?session_id={{ session.id }}"
+                    class="history-item {% if current_session.id == session.id %}active{% endif %}">
+                    {{ session.title }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="chat-main">
+            <div class="chat-header">
+                <h2>✨ Personal Gemini</h2>
+                <div id="upload-progress" style="font-size: 0.9em; color: #a6c0fe; height: 20px; margin-top: 5px;">
+                </div>
+            </div>
+
+            <div id="chat-box" class="chat-box">
+                {% if not current_session %}
+                <div class="message bot-msg">Hello! I'm ready. Upload a document or start chatting!</div>
+                {% endif %}
+                {% if current_session %}
+                {% for msg in current_session.messages.all %}
+                <div class="message {{ msg.is_user|yesno:'user-msg,bot-msg' }}">{{ msg.text|safe }}</div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="input-area">
+                <label
+                    style="cursor: pointer; font-size: 1.2em; padding: 10px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: 0.2s;"
+                    title="Upload Files">
+                    📎
+                    <input type="file" id="file-input" multiple style="display:none" onchange="uploadFiles(this.files)">
+                </label>
+
+                <input type="text" id="user-input" class="glass-input" style="margin:0;" placeholder="Ask something..."
+                    onkeypress="handleEnter(event)">
+                <button id="send-btn" class="glass-btn" style="width: auto; margin:0;"
+                    onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = "{{ current_session.id|default:'null' }}";
+        function getCsrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]').value; }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll('.bot-msg').forEach(msg => { msg.innerHTML = marked.parse(msg.innerHTML); });
+            const box = document.getElementById('chat-box');
+            box.scrollTop = box.scrollHeight;
+        });
+
+        function uploadFiles(files) {
+            if (!files.length) return;
+            const progress = document.getElementById('upload-progress');
+            progress.innerText = "⏳ Uploading...";
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) formData.append('files', files[i]);
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+            fetch('{% url "upload_api" %}', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    progress.innerText = data.status === 'success' ? "✅ Done!" : "❌ Error";
+                    setTimeout(() => { progress.innerText = ""; }, 3000);
+                });
+        }
+
+        function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="message user-msg">${msg}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            const btn = document.getElementById('send-btn');
+            btn.disabled = true;
+            btn.style.opacity = "0.5";
+
+            const formData = new FormData();
+            formData.append('message', msg);
+            formData.append('session_id', currentSessionId);
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+            fetch('{% url "chat_api" %}', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (currentSessionId === 'null' && data.session_id) {
+                        currentSessionId = data.session_id;
+                        window.history.replaceState({}, '', `?session_id=${data.session_id}`);
+                    }
+                    box.innerHTML += `<div class="message bot-msg">${marked.parse(data.response)}</div>`;
+                    box.scrollTop = box.scrollHeight;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                });
+        }
+    </script>
+</body>
+
+</html>

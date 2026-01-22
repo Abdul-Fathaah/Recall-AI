@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <div class="glass-card">
+        <h2 style="margin-bottom: 20px;">Join Personal Gemini</h2>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div style="margin-bottom: 10px;">
+                <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}"
+                    placeholder="{{ field.label }}" class="glass-input" {% if field.field.required %}required{% endif
+                    %}>
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="glass-btn"
+                style="background: var(--accent); border: none; margin-top: 20px;">Sign Up</button>
+        </form>
+
+        <p style="margin-top: 20px; font-size: 0.9em; color: var(--text-muted);">
+            Already have an account? <a href="{% url 'login' %}" style="color: #a6c0fe;">Login</a>
+        </p>
+    </div>
+</body>
+
+</html>

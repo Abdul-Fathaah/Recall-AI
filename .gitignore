@@ -1,0 +1,15 @@
+# Security - NEVER PUSH THESE
+.env
+.env.local
+*.env
+
+# Python & Django Garbage
+*.pyc
+__pycache__/
+db.sqlite3
+venv/
+env/
+
+# Large AI Data & User Uploads
+ChatBot/faiss_index/
+ChatBot/media/documents/

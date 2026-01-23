@@ -11,5 +11,5 @@ venv/
 env/
 
 # Large AI Data & User Uploads
-faiss_index/
+faiss_indexes/
 media/

@@ -13,5 +13,7 @@ urlpatterns = [
     
     # API Endpoints (The brain)
     path('api/chat/', views.chat_api, name='chat_api'),
-    path('api/upload/', views.upload_api, name='upload_api'), # <--- This was likely missing!
+    path('api/upload/', views.upload_api, name='upload_api'),
+
+    path('delete_chat_session/<int:session_id>/', views.delete_chat_session, name='delete_chat_session'),
 ]

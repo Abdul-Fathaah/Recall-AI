@@ -201,3 +201,62 @@ body {
 .bot-msg ul {
     margin-left: 20px;
 }
+
+/* --- SIDEBAR STYLES--- */
+.history-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    padding-right: 10px;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.history-wrapper:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.history-wrapper.active {
+    background: rgba(102, 126, 234, 0.3);
+    border-color: var(--accent);
+}
+
+.history-link {
+    flex: 1;
+    text-decoration: none;
+    color: var(--text-muted);
+    padding: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.history-wrapper:hover .history-link,
+.history-wrapper.active .history-link {
+    color: white;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 107, 107, 0.7);
+    opacity: 0;
+    transition: 0.2s;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.history-wrapper:hover .delete-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    color: #ff4757;
+    transform: scale(1.1);
+}

@@ -1,13 +1,13 @@
 /* GLASSMORPHISM THEME */
 :root {
-    --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --bg-gradient: linear-gradient(135deg, #000000 0%, #121212 50%, #1c1c1c 100%);
+    --glass-bg: rgba(0, 0, 0, 0.6);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
     --text-main: #ffffff;
-    --text-muted: rgba(255, 255, 255, 0.7);
-    --accent: #667eea;
-    --accent-hover: #764ba2;
+    --text-muted: rgba(255, 255, 255, 0.5);
+    --accent: #514747;
+    --accent-hover: #404040;
 }
 
 * {
@@ -146,11 +146,17 @@ body {
 
 .chat-box {
     flex: 1;
-    padding: 20px;
+    padding: 16px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 15px;
+}
+
+.chat-box::-webkit-scrollbar {
+    display: none;
 }
 
 .message {

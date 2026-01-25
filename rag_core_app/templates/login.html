@@ -4,27 +4,307 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Login - RecallAI</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- FUTURISTIC THEME (Matching Landing Page) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background-color: #050505;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT CONTAINER --- */
+        .split-container {
+            display: flex;
+            width: 90%;
+            max-width: 1000px;
+            height: 80vh;
+            /* Fixed height for the "dashboard" feel */
+            max-height: 600px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- LEFT SIDE: INFO & QUOTES --- */
+        .info-side {
+            flex: 1;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.05));
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated Background Blobs for Left Side */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .blob-1 {
+            top: -20%;
+            left: -20%;
+            width: 300px;
+            height: 300px;
+            background: #60a5fa;
+        }
+
+        .blob-2 {
+            bottom: -20%;
+            right: -20%;
+            width: 250px;
+            height: 250px;
+            background: #c084fc;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            z-index: 1;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .quote-box {
+            z-index: 1;
+            margin-bottom: 20px;
+        }
+
+        .quote-text {
+            font-size: 1.4rem;
+            line-height: 1.4;
+            color: #f1f5f9;
+            font-weight: 500;
+            margin-bottom: 15px;
+            min-height: 100px;
+            /* Prevent layout shift */
+        }
+
+        .quote-author {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quote-author::before {
+            content: '';
+            display: block;
+            width: 20px;
+            height: 1px;
+            background: #60a5fa;
+        }
+
+        /* --- RIGHT SIDE: FORM --- */
+        .form-side {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .form-header h2 {
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .form-header p {
+            color: #94a3b8;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        /* Reusing your glass styles but tweaked */
+        .glass-input {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        .glass-input:focus {
+            border-color: #60a5fa;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.2);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+                height: auto;
+                max-height: none;
+                width: 95%;
+            }
+
+            .info-side {
+                padding: 30px;
+                min-height: 200px;
+            }
+
+            .form-side {
+                padding: 30px;
+            }
+
+            .blob {
+                display: none;
+            }
+
+            /* Better performance on mobile */
+        }
+    </style>
 </head>
 
 <body>
-    <div class="glass-card">
-        <h2 style="margin-bottom: 20px;">Welcome Back</h2>
 
-        <form method="post">
-            {% csrf_token %}
-            <input type="text" name="username" placeholder="Username" class="glass-input" required>
-            <input type="password" name="password" placeholder="Password" class="glass-input" required>
+    <div class="split-container">
+        <div class="info-side">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
 
-            <button type="submit" class="glass-btn"
-                style="background: var(--accent); border: none; margin-top: 20px;">Sign In</button>
-        </form>
+            <div class="logo">RecallAI</div>
 
-        <p style="margin-top: 20px; font-size: 0.9em; color: var(--text-muted);">
-            New here? <a href="{% url 'register' %}" style="color: #a6c0fe;">Create an account</a>
-        </p>
+            <div class="quote-box">
+                <div class="quote-text" id="quote-display">
+                    "AI will not replace you. A person using AI will."
+                </div>
+                <div class="quote-author" id="author-display">
+                    Generic Wisdom
+                </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.3); z-index: 1;">
+                &copy; 2026 RecallAI Systems.
+            </div>
+        </div>
+
+        <div class="form-side">
+            <div class="form-header">
+                <h2>Welcome Back</h2>
+                <p>Enter your credentials to access your second brain.</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div style="margin-bottom: 5px;">
+                    {{ field }}
+                    {% if field.errors %}
+                    <div
+                        style="color: #ef4444; font-size: 0.8em; margin-top: -15px; margin-bottom: 15px; margin-left: 5px;">
+                        {{ field.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="login-btn">Access Dashboard</button>
+            </form>
+
+            <p style="margin-top: 25px; text-align: center; font-size: 0.9rem; color: #94a3b8;">
+                New here? <a href="{% url 'register' %}"
+                    style="color: #60a5fa; text-decoration: none; font-weight: 500;">Create an account</a>
+            </p>
+        </div>
     </div>
+
+    <script>
+        const quotes = [
+            { text: "The real problem is not whether machines think but whether men do.", author: "B.F. Skinner" },
+            { text: "Artificial intelligence is not a substitute for human intelligence; it is a tool to amplify human creativity and ingenuity.", author: "Fei-Fei Li" },
+            { text: "We are entering a new world. The technologies of machine learning, speech recognition, and natural language understanding are reaching a nexus of capability.", author: "Satya Nadella" },
+            { text: "AI will not replace you. A person using AI will.", author: "Industry Saying" },
+            { text: "Automation is cost cutting by tightening the corners and not cutting them.", author: "Haresh Sippy" },
+            { text: "Education is the passport to the future, and AI is the jet engine.", author: "Anonymous" },
+            { text: "Predicting the future isn't magic, it's artificial intelligence.", author: "Dave Waters" }
+        ];
+
+        function setRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            const quote = quotes[randomIndex];
+
+            const textEl = document.getElementById('quote-display');
+            const authorEl = document.getElementById('author-display');
+
+            // Simple fade effect
+            textEl.style.opacity = 0;
+            authorEl.style.opacity = 0;
+
+            setTimeout(() => {
+                textEl.innerText = `"${quote.text}"`;
+                authorEl.innerText = quote.author;
+                textEl.style.opacity = 1;
+                authorEl.style.opacity = 1;
+            }, 300);
+        }
+
+        // Initialize with CSS transition for fade
+        const textEl = document.getElementById('quote-display');
+        const authorEl = document.getElementById('author-display');
+        textEl.style.transition = "opacity 0.5s ease";
+        authorEl.style.transition = "opacity 0.5s ease";
+
+        // Set quote on load
+        setRandomQuote();
+    </script>
 </body>
 
 </html>

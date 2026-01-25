@@ -16,4 +16,5 @@ urlpatterns = [
     path('api/upload/', views.upload_api, name='upload_api'),
 
     path('delete_chat_session/<int:session_id>/', views.delete_chat_session, name='delete_chat_session'),
+    path('update_profile/', views.update_profile, name='update_profile'),
 ]

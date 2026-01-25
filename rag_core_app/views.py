@@ -4,26 +4,41 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .rag_utils import get_answer, process_file, clear_data, generate_chat_title
-from .forms import DocumentForm 
+from .forms import DocumentForm, SignUpForm, UserUpdateForm
 from .models import Document, ChatSession, ChatMessage
 
 # === AUTHENTICATION ===
 def landing(request): return render(request, 'landing.html')
 def register(request):
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST) # Use the new form
         if form.is_valid():
             login(request, form.save())
             return redirect('home')
-    else: form = UserCreationForm()
+    else:
+        form = SignUpForm()
+
+    # Inject Glass Styles
+    for field in form.fields.values():
+        field.widget.attrs.update({'class': 'glass-input', 'placeholder': field.label})
+
     return render(request, 'register.html', {'form': form})
+
 def user_login(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
             return redirect('home')
-    else: form = AuthenticationForm()
+    else:
+        form = AuthenticationForm()
+
+    for field in form.fields.values():
+        field.widget.attrs.update({
+            'class': 'glass-input',
+            'placeholder': field.label
+        })
+
     return render(request, 'login.html', {'form': form})
 def user_logout(request): logout(request); return redirect('login')
 
@@ -104,4 +119,13 @@ def delete_chat_session(request, session_id):
     session = get_object_or_404(ChatSession, id=session_id, user=request.user)
     clear_data(session.id) # Wipe only this chat's brain
     session.delete()
+    return redirect('home')
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
     return redirect('home')

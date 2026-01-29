@@ -4,374 +4,69 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>RecallAI - The Future of Memory</title>
+    <title>RecallAI - The Future</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* --- FUTURISTIC BASE STYLES --- */
-        body {
-            overflow-y: auto;
-            display: block;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            font-family: 'Outfit', sans-serif;
-            /* Modern, clean font */
-            background-color: #000000;
-            /* Deepest black for contrast */
-            /* Subtle Grid Background */
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            background-position: center top;
-        }
-
-        body::-webkit-scrollbar {
-            display: none;
-        }
-
-        .landing-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* --- ANIMATIONS --- */
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        @keyframes gradientFlow {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        /* --- NAVIGATION --- */
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: white;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-buttons {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .nav-link {
-            color: #94a3b8;
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-
-        .nav-link:hover {
-            color: white;
-        }
-
-        .nav-btn {
-            width: auto !important;
-            margin: 0 !important;
-            padding: 10px 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* --- HERO SECTION --- */
-        .hero {
-            text-align: center;
-            padding: 100px 20px;
-            position: relative;
-        }
-
-        /* Glowing Gradient Text */
-        .hero h1 {
-            font-size: 4rem;
-            line-height: 1.1;
-            margin-bottom: 25px;
-            font-weight: 700;
-            background: linear-gradient(-45deg, #ffffff, #60a5fa, #c084fc, #ffffff);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientFlow 6s ease infinite;
-        }
-
-        .hero p {
-            font-size: 1.3rem;
-            color: #94a3b8;
-            max-width: 650px;
-            margin: 0 auto 50px auto;
-            line-height: 1.6;
-            font-weight: 300;
-        }
-
-        /* --- CTA BUTTONS --- */
-        .cta-btn {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            padding: 16px 45px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            box-shadow: 0 0 30px rgba(37, 99, 235, 0.3);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .cta-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 0 50px rgba(37, 99, 235, 0.5);
-        }
-
-        /* --- FEATURE CARDS --- */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-            margin-top: 80px;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 40px;
-            border-radius: 24px;
-            transition: 0.4s;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-
-        /* Hover Glow Effect */
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.5), transparent);
-            opacity: 0;
-            transition: 0.4s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(96, 165, 250, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 25px;
-            display: inline-block;
-            filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.3));
-        }
-
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #f1f5f9;
-        }
-
-        /* --- TECH STACK (HOLOGRAPHIC STYLE) --- */
-        .tech-section {
-            text-align: center;
-            margin-top: 150px;
-        }
-
-        .tech-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 40px;
-            margin-bottom: 50px;
-        }
-
-        .tech-badge {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 28px;
-            border-radius: 100px;
-            color: #94a3b8;
-            font-weight: 500;
-            transition: 0.3s;
-            cursor: default;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .tech-badge:hover {
-            background: rgba(96, 165, 250, 0.1);
-            border-color: #60a5fa;
-            color: #fff;
-            box-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
-            transform: scale(1.05);
-        }
-
-        /* --- REPO BUTTONS --- */
-        .repo-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-
-        .github-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 14px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-
-        .github-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: white;
-            transform: translateY(-2px);
-        }
-
-        /* --- FOOTER --- */
-        .footer-box {
-            margin-top: 120px;
-            padding: 40px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            color: #64748b;
-        }
-    </style>
 </head>
 
-<body>
+<body class="landing-body no-scrollbar">
+
     <div class="landing-container">
-        <div class="nav">
-            <div class="logo">RecallAI</div>
-            <div class="nav-buttons">
+        <nav class="nav">
+            <div class="logo text-gradient">RecallAI</div>
+            <div>
                 <a href="{% url 'login' %}" class="nav-link">Login</a>
-                <a href="{% url 'register' %}" class="glass-btn nav-btn"
-                    style="border-radius: 50px; background: rgba(255,255,255,0.08);">Sign Up</a>
+                <a href="{% url 'register' %}" class="btn-primary" style="padding: 10px 20px; border-radius: 50px;">Sign
+                    Up</a>
             </div>
-        </div>
+        </nav>
 
-        <div class="hero">
-            <div style="animation: float 6s ease-in-out infinite;">
-                <h1>Your Intelligent<br>Second Brain</h1>
+        <section class="hero">
+            <h1 class="text-gradient">Your Intelligent<br>Second Brain</h1>
+            <p>Stop searching endlessly. Upload documents and let our AI analyze, index, and answer instantly.</p>
+            <a href="{% url 'login' %}" class="btn-primary" style="border-radius: 50px; font-size: 1.2rem;">Get Started
+                Now ➜</a>
+        </section>
+
+        <div style="text-align: center; margin-bottom: 50px;">
+            <div style="text-transform: uppercase; color: #60a5fa; letter-spacing: 2px; font-size: 0.8rem;">Powered By
             </div>
-            <p>
-                Stop searching endlessly. Upload documents, contracts, or study materials,
-                and let our AI analyze, index, and answer your questions instantly.
-            </p>
-            <div style="margin-top: 40px;">
-                <a href="{% url 'login' %}" class="cta-btn">
-                    Get Started Now <span>→</span>
-                </a>
-            </div>
-        </div>
-
-        <div class="tech-section">
-            <p
-                style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; color: #60a5fa; margin-bottom: 10px;">
-                Built for Performance</p>
-            <h2 style="font-weight: 400; font-size: 2rem; color: white;">Powered by Next-Gen Tech</h2>
-
             <div class="tech-grid">
-                <div class="tech-badge"><span>🐍</span> Python & Django</div>
-                <div class="tech-badge"><span>🦜</span> LangChain</div>
-                <div class="tech-badge"><span>⚡</span> Groq Llama 3</div>
-                <div class="tech-badge"><span>🔍</span> FAISS Vector DB</div>
-                <div class="tech-badge"><span>🗄️</span> MySQL</div>
+                <span class="tech-badge">🐍 Python</span>
+                <span class="tech-badge">⚡ Groq Llama 3</span>
+                <span class="tech-badge">🦜 LangChain</span>
+                <span class="tech-badge">🔍 FAISS</span>
             </div>
-
-            <div class="repo-buttons">
-                <a href="https://github.com/Abdul-Fathaah/Recall-AI" target="_blank" class="github-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path
-                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                    </svg>
-                    Clone Repo
-                </a>
-            </div>
+            <a href="https://github.com/Abdul-Fathaah/Recall-AI" target="_blank"
+                style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">★ Star on GitHub</a>
         </div>
 
-        <div class="features">
+        <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">📄</div>
+                <span class="feature-icon">📄</span>
                 <h3>Deep Analysis</h3>
-                <p style="color: #94a3b8;">Upload PDFs, DOCX, or text files. Our AI engine reads, comprehends, and
-                    indexes them instantly.</p>
+                <p style="color: var(--text-muted);">Upload PDFs, DOCX, or text files. Our engine reads and indexes them
+                    instantly.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🧠</div>
+                <span class="feature-icon">🧠</span>
                 <h3>Vector Memory</h3>
-                <p style="color: #94a3b8;">RecallAI retains context across your session, allowing for complex,
-                    multi-turn conversations.</p>
+                <p style="color: var(--text-muted);">Retains context across sessions for complex multi-turn
+                    conversations.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🔒</div>
+                <span class="feature-icon">🔒</span>
                 <h3>Encrypted Context</h3>
-                <p style="color: #94a3b8;">Your data is processed in isolated sessions with enterprise-grade security
-                    standards.</p>
+                <p style="color: var(--text-muted);">Data is processed in isolated sessions with enterprise-grade
+                    security.</p>
             </div>
         </div>
 
-        <div class="footer-box">
-            <p>&copy; 2026 RecallAI. Engineering the future of productivity.</p>
-        </div>
+        <footer style="text-align: center; margin-top: 100px; color: var(--text-muted); padding-bottom: 40px;">
+            &copy; 2026 RecallAI. Engineering the Future.
+        </footer>
     </div>
+
 </body>
 
 </html>

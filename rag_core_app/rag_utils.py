@@ -2,7 +2,14 @@ import os
 import shutil
 import pytesseract
 from pdf2image import convert_from_path
-from langchain_community.document_loaders import PyMuPDFLoader, TextLoader
+from langchain_community.document_loaders import (
+    PyMuPDFLoader, 
+    TextLoader, 
+    Docx2txtLoader,
+    UnstructuredPowerPointLoader,
+    UnstructuredExcelLoader,
+    CSVLoader
+)
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -28,11 +35,13 @@ def get_db_path(session_id):
 # === 1. DOCUMENT LOADING ===
 def extract_text_with_ocr(file_path):
     try:
+        # OCR is primarily for Scanned PDFs
         poppler_path = os.getenv("POPPLER_PATH") 
         if poppler_path:
              images = convert_from_path(file_path, poppler_path=poppler_path)
         else:
              images = convert_from_path(file_path)
+        
         full_text = ""
         for i, image in enumerate(images):
             text = pytesseract.image_to_string(image)
@@ -42,7 +51,27 @@ def extract_text_with_ocr(file_path):
         print(f"OCR Failed: {e}")
         return ""
 
-# === UPDATED PROCESS FILE: Accepts session_id ===
+def get_loader(file_path):
+    """Factory function to get the correct loader based on extension"""
+    ext = os.path.splitext(file_path)[1].lower()
+    
+    if ext == ".pdf":
+        return PyMuPDFLoader(file_path)
+    elif ext == ".txt":
+        return TextLoader(file_path, encoding='utf-8')
+    elif ext in [".docx", ".doc"]:
+        return Docx2txtLoader(file_path)
+    elif ext in [".pptx", ".ppt"]:
+        return UnstructuredPowerPointLoader(file_path)
+    elif ext in [".xlsx", ".xls"]:
+        return UnstructuredExcelLoader(file_path)
+    elif ext == ".csv":
+        return CSVLoader(file_path)
+    else:
+        # Fallback for unknown text-based files (code, json, etc)
+        return TextLoader(file_path, autodetect_encoding=True)
+
+# === UPDATED PROCESS FILE ===
 def process_file(file_path, session_id):
     if not session_id:
         print("Error: No session ID provided for processing.")
@@ -53,17 +82,18 @@ def process_file(file_path, session_id):
     
     documents = []
     try:
-        if file_path.endswith(".txt"):
-            loader = TextLoader(file_path, encoding='utf-8')
-            documents = loader.load()
-        else:
-            loader = PyMuPDFLoader(file_path)
-            documents = loader.load()
-    except Exception:
-        pass
+        loader = get_loader(file_path)
+        documents = loader.load()
+    except Exception as e:
+        print(f"Error loading file {file_path}: {e}")
+        return
 
+    # Check for empty content (e.g., Scanned PDFs)
     raw_text = "".join([doc.page_content for doc in documents])
-    if len(raw_text.strip()) < 50: 
+    
+    # OCR Fallback: Only run this for PDFs that came back empty
+    if len(raw_text.strip()) < 50 and file_path.lower().endswith(".pdf"):
+        print("Text too short. Attempting OCR...")
         ocr_text = extract_text_with_ocr(file_path)
         if ocr_text.strip():
             from langchain.schema import Document
@@ -71,8 +101,14 @@ def process_file(file_path, session_id):
         else:
             return
 
+    # Split & Embed
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     docs = text_splitter.split_documents(documents)
+    
+    if not docs:
+        print("No content found to index.")
+        return
+
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
     
     if os.path.exists(db_path):
@@ -87,7 +123,7 @@ def process_file(file_path, session_id):
         vector_store = FAISS.from_documents(docs, embeddings)
         vector_store.save_local(db_path)    
 
-# === 2. SESSION-AWARE CHATBOT ===
+# === 2. SESSION-AWARE CHATBOT (Unchanged) ===
 def get_answer(query, session_id):
     db_path = get_db_path(session_id)
     
@@ -109,7 +145,7 @@ def get_answer(query, session_id):
             except:
                 pass
 
-        # ROUTE 2: DOCUMENT SEARCH (Specific to this Session)
+        # ROUTE 2: DOCUMENT SEARCH
         if db_path and os.path.exists(db_path):
             embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
             try:
@@ -133,9 +169,8 @@ def get_answer(query, session_id):
     except Exception as e:
         return f"Error: {str(e)}"
 
-# === 3. MEMORY MANAGEMENT ===
+# === 3. MEMORY MANAGEMENT (Unchanged) ===
 def clear_data(session_id):
-    """Deletes the specific folder for this session."""
     db_path = get_db_path(session_id)
     if db_path and os.path.exists(db_path):
         try:
@@ -143,7 +178,7 @@ def clear_data(session_id):
         except Exception:
             pass
 
-# === 4. TITLE GENERATOR ===
+# === 4. TITLE GENERATOR (Unchanged) ===
 def generate_chat_title(user_message, bot_response):
     try:
         llm = ChatGroq(temperature=0.3, model_name="llama-3.1-8b-instant")

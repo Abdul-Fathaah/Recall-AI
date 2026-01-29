@@ -17,4 +17,5 @@ urlpatterns = [
 
     path('delete_chat_session/<int:session_id>/', views.delete_chat_session, name='delete_chat_session'),
     path('update_profile/', views.update_profile, name='update_profile'),
+    path('rename_chat/<int:session_id>/', views.rename_chat_session, name='rename_chat_session'),
 ]

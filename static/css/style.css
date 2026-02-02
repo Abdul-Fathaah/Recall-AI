@@ -499,22 +499,28 @@ body {
 
 /* Sidebar Buttons Fix (Remove white background) */
 .action-btn {
+    opacity: 0;
     background: transparent;
-    /* Fixes white box issue */
     border: none;
     color: var(--text-muted);
     cursor: pointer;
     padding: 5px;
     border-radius: 4px;
-    transition: 0.2s;
+    transition: all 0.2s ease-in-out;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+.history-item:hover .action-btn {
+    opacity: 1;
+    /* VISIBLE on hover */
+}
+
 .action-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     color: white;
+    transform: scale(1.1);
 }
 
 @keyframes fadeIn {

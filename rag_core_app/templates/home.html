@@ -30,12 +30,11 @@
             <div class="history-list no-scrollbar">
                 {% for session in sessions %}
                 <div class="history-item {% if current_session.id == session.id %}active{% endif %}"
-                    onclick="location.href='{{ home_url }}?session_id={{ session.id }}';">
+                    onclick="location.href=`{% url 'home' %}?session_id={{ session.id }}`">
                     <span
                         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 0.9rem;">
                         {{ session.title }}
                     </span>
-
                     <div style="display: flex; gap: 5px;">
                         <button class="action-btn"
                             onclick="openRenameModal(event, '{{ session.id }}', '{{ session.title|escapejs }}')"
@@ -52,7 +51,8 @@
                             <button class="action-btn" style="color: #ef4444;" title="Delete">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"></path>
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                    </path>
                                 </svg>
                             </button>
                         </form>
@@ -70,12 +70,17 @@
                     <div style="font-weight: 500;">{{ user.first_name|default:user.username }}</div>
                     <div style="font-size: 0.8rem; color: var(--text-muted);">Free Plan</div>
                 </div>
-                <a href="{% url 'logout' %}" style="color: var(--danger); text-decoration: none;">➜</a>
+                <button onclick="showLogoutConfirmation()"
+                    style="background:none; border:none; cursor:pointer; color: var(--danger);" title="Logout">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636a9 9 0 11-12.728 0M12 3v9"></path>
+                    </svg>
+                </button>
             </div>
         </aside>
 
         <main class="chat-area">
-
             {% if current_session %}
             <div class="chat-header">
                 <div>
@@ -84,7 +89,7 @@
             </div>
             {% else %}
             <div class="chat-header">
-                <div class="chat-title">New Session</div>
+                <div class="chat-title">New Chat</div>
             </div>
             {% endif %}
 
@@ -113,7 +118,7 @@
                 </div>
                 {% else %}
                 <div class="msg {{ msg.is_user|yesno:'msg-user,msg-bot' }}">
-                    {{ msg.text|safe }}
+                    {{ msg.text }}
                 </div>
                 {% endif %}
                 {% endfor %}
@@ -135,10 +140,8 @@
                         <input type="file" id="file-input" multiple style="display:none"
                             onchange="uploadFiles(this.files)">
                     </label>
-
                     <input type="text" id="user-input" class="chat-input" placeholder="Type your message..."
                         onkeypress="handleEnter(event)">
-
                     <button onclick="sendMessage()"
                         style="background:none; border:none; cursor:pointer; color: #60a5fa;">
                         <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,9 +172,42 @@
         </div>
     </div>
 
+    <div id="logoutConfirmModal"
+        style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
+        <div class="glass-card"
+            style="width: 90%; max-width: 400px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; text-align: center;">
+            <h3 style="margin-bottom: 15px; color: white;">End Session?</h3>
+            <p style="color: var(--text-muted); margin-bottom: 25px;">You are attempting to leave the secure dashboard.
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="document.getElementById('logoutConfirmModal').style.display='none'" class="btn-primary"
+                    style="background: rgba(255,255,255,0.1); flex:1;">Stay Here</button>
+                <a href="{% url 'logout' %}" class="btn-primary"
+                    style="background: #ef4444; flex:1; text-decoration: none; display: flex; align-items: center; justify-content: center;">Logout</a>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentSessionId = "{{ current_session.id|default:'null' }}";
         function getCsrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]').value; }
+
+        // --- SECURITY: BACK BUTTON TRAP ---
+        function showLogoutConfirmation() {
+            document.getElementById('logoutConfirmModal').style.display = 'flex';
+        }
+
+        // Push state on load
+        history.pushState(null, null, location.href);
+
+        // Intercept Back Button
+        window.onpopstate = function () {
+            // Push state again so they stay on the page
+            history.pushState(null, null, location.href);
+            // Show the modal
+            showLogoutConfirmation();
+        };
+        // ----------------------------------
 
         function openRenameModal(event, sessionId, currentTitle) {
             event.stopPropagation();
@@ -180,20 +216,23 @@
             document.getElementById('newTitleInput').value = currentTitle;
             modal.style.display = 'flex';
         }
-        window.onclick = function (e) { if (e.target == document.getElementById('renameModal')) document.getElementById('renameModal').style.display = "none"; }
 
+        window.onclick = function (e) {
+            if (e.target == document.getElementById('renameModal')) document.getElementById('renameModal').style.display = "none";
+            if (e.target == document.getElementById('logoutConfirmModal')) document.getElementById('logoutConfirmModal').style.display = "none";
+        }
+
+        // Markdown & Scroll
         document.addEventListener("DOMContentLoaded", function () {
-            // Fix: Strip whitespace from HTML to prevent Markdown code block detection
             document.querySelectorAll('.msg-bot').forEach(msg => {
-                if (!msg.innerHTML.includes('<')) {
-                    msg.innerHTML = marked.parse(msg.innerHTML.trim());
-                }
+                if (!msg.innerHTML.includes('<')) { msg.innerHTML = marked.parse(msg.innerHTML.trim()); }
             });
             scrollToBottom();
         });
 
         function scrollToBottom() { const box = document.getElementById('chat-box'); box.scrollTop = box.scrollHeight; }
 
+        // Upload
         function uploadFiles(files) {
             if (!files.length) return;
             document.getElementById('upload-progress').innerText = "⏳ Analyzing documents...";

@@ -18,7 +18,13 @@
     <div class="dashboard-wrapper">
 
         <aside class="sidebar">
-            <h2 class="text-gradient" style="margin-bottom: 25px; font-weight: 700;">RecallAI</h2>
+            <div class="sidebar-header">
+                <a href="{% url 'landing' %}" style="text-decoration: none; display: block;">
+                    <h3
+                        style="font-size: 1.5rem; font-weight: 700; margin-bottom: 25px; background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                        RecallAI</h3>
+                </a>
+            </div>
 
             <a href="{% url 'home' %}" class="btn-primary"
                 style="width:100%; margin-bottom: 20px; justify-content: center;">+ New Chat</a>

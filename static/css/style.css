@@ -3,30 +3,30 @@
    ========================================= */
 :root {
     /* --- DARK THEME (DEFAULT) --- */
-    --bg-main: #360707;
-    --bg-glass: rgba(71, 28, 11, 0.6);
+    --bg-main: #050505;
+    --bg-glass: rgba(15, 23, 42, 0.6);
     --bg-glass-light: rgba(255, 255, 255, 0.03);
     --border-glass: rgba(255, 255, 255, 0.1);
     --text-main: #f1f5f9;
     --text-muted: #94a3b8;
-    --primary-gradient: linear-gradient(135deg, #f6833b6e, #8a3408);
+    --primary-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
     --text-gradient: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
     --grid-line: rgba(255, 255, 255, 0.03);
     --card-bg: rgba(255, 255, 255, 0.02);
     --nav-btn-bg: rgba(255, 255, 255, 0.08);
     --blob-opacity: 0.4;
-    --shadow-card: 0 25px 50px -12px rgba(45, 7, 7, 0.5);
+    --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     --blur-strength: 20px;
 }
 
 [data-theme="light"] {
-    --bg-main: #f6833b;
-    --bg-glass: rgba(202, 132, 78, 0.85);
+    --bg-main: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.85);
     --bg-glass-light: rgba(0, 0, 0, 0.05);
     --border-glass: rgba(0, 0, 0, 0.1);
     --text-main: #0f172a;
     --text-muted: #475569;
-    --text-gradient: linear-gradient(135deg, #fdfcfa 0%, #f7f6f5 100%);
+    --text-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     --grid-line: rgba(0, 0, 0, 0.05);
     --card-bg: rgba(0, 0, 0, 0.03);
     --nav-btn-bg: rgba(0, 0, 0, 0.05);

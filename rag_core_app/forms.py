@@ -17,6 +17,13 @@ class DocumentForm(forms.ModelForm):
     class Meta:
         model = Document
         fields = ['file']
+    
+    def clean_file(self):
+        file = self.cleaned_data['file']
+        ext = file.name.split('.')[-1].lower()
+        if ext not in ['pdf', 'txt', 'docx', 'pptx', 'xlsx', 'csv']:
+            raise forms.ValidationError("Unsupported file type.")
+        return file
 
 class SignUpForm(GlassStyleMixin, UserCreationForm):
     first_name = forms.CharField(max_length=30, required=False, label="First Name")
@@ -36,4 +43,5 @@ class UserUpdateForm(GlassStyleMixin, forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
+        # Added 'username' to the fields list
+        fields = ['username', 'first_name', 'last_name', 'email']

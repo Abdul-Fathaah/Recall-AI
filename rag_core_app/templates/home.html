@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -22,7 +28,8 @@
                 <a href="{% url 'landing' %}" style="text-decoration: none; display: block;">
                     <h3
                         style="font-size: 1.5rem; font-weight: 700; margin-bottom: 25px; background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
-                        RecallAI</h3>
+                        RecallAI
+                    </h3>
                 </a>
             </div>
 
@@ -31,7 +38,8 @@
 
             <div
                 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 15px; font-weight: 600;">
-                Recent History</div>
+                Recent History
+            </div>
 
             <div class="history-list no-scrollbar">
                 {% for session in sessions %}
@@ -76,6 +84,17 @@
                     <div style="font-weight: 500;">{{ user.first_name|default:user.username }}</div>
                     <div style="font-size: 0.8rem; color: var(--text-muted);">Free Plan</div>
                 </div>
+
+                <button onclick="openSettingsModal()" class="action-btn" title="Settings" style="margin-right: 5px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
+
                 <button onclick="showLogoutConfirmation()"
                     style="background:none; border:none; cursor:pointer; color: var(--danger);" title="Logout">
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,6 +179,57 @@
         </main>
     </div>
 
+    <div id="settingsModal"
+        style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
+        <div class="glass-card"
+            style="width: 90%; max-width: 450px; background: var(--bg-main); border: 1px solid var(--border-glass); padding: 30px; border-radius: 20px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="color: var(--text-main); margin: 0;">Profile Settings</h3>
+                <button onclick="document.getElementById('settingsModal').style.display='none'"
+                    style="background:none; border:none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
+            </div>
+
+            <form action="{% url 'update_profile' %}" method="POST">
+                {% csrf_token %}
+                <div style="margin-bottom: 15px;">
+                    <label
+                        style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-bottom: 5px;">Username</label>
+                    <input type="text" name="username" value="{{ user.username }}" class="glass-input" required>
+                </div>
+                <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <label
+                            style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-bottom: 5px;">First
+                            Name</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" class="glass-input">
+                    </div>
+                    <div style="flex: 1;">
+                        <label
+                            style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-bottom: 5px;">Last
+                            Name</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" class="glass-input">
+                    </div>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label
+                        style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-bottom: 5px;">Email</label>
+                    <input type="email" name="email" value="{{ user.email }}" class="glass-input" required>
+                </div>
+
+                <div
+                    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; padding: 15px; background: var(--bg-glass-light); border-radius: 12px;">
+                    <span style="color: var(--text-main); font-weight: 500;">Dark Mode</span>
+                    <label class="switch">
+                        <input type="checkbox" id="themeToggleCheckbox" onchange="toggleThemeModal(this)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
     <div id="renameModal"
         style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
         <div class="glass-card"
@@ -198,6 +268,19 @@
         let currentSessionId = "{{ current_session.id|default:'null' }}";
         function getCsrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]').value; }
 
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            // Sync checkbox with current theme
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            document.getElementById('themeToggleCheckbox').checked = (currentTheme === 'dark');
+        }
+
+        function toggleThemeModal(checkbox) {
+            const newTheme = checkbox.checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
         // --- SECURITY: BACK BUTTON TRAP ---
         function showLogoutConfirmation() {
             document.getElementById('logoutConfirmModal').style.display = 'flex';
@@ -226,6 +309,8 @@
         window.onclick = function (e) {
             if (e.target == document.getElementById('renameModal')) document.getElementById('renameModal').style.display = "none";
             if (e.target == document.getElementById('logoutConfirmModal')) document.getElementById('logoutConfirmModal').style.display = "none";
+            // Note: Settings modal close is handled by the close button or you can add it here too
+            if (e.target == document.getElementById('settingsModal')) document.getElementById('settingsModal').style.display = "none";
         }
 
         // Markdown & Scroll

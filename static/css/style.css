@@ -1,26 +1,48 @@
 /* =========================================
-   1. VARIABLES & RESET
+   1. VARIABLES & THEME CONFIGURATION
    ========================================= */
 :root {
-    /* Colors */
-    --bg-dark: #050505;
+    /* --- DARK THEME (DEFAULT) --- */
+    --bg-main: #050505;
     --bg-glass: rgba(15, 23, 42, 0.6);
     --bg-glass-light: rgba(255, 255, 255, 0.03);
     --border-glass: rgba(255, 255, 255, 0.1);
 
-    /* Text */
     --text-main: #f1f5f9;
     --text-muted: #94a3b8;
 
-    /* Accents */
     --primary-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
     --text-gradient: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-    --success: #10b981;
-    --danger: #ef4444;
 
-    /* Shadows & Effects */
+    --grid-line: rgba(255, 255, 255, 0.03);
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --nav-btn-bg: rgba(255, 255, 255, 0.08);
+    --blob-opacity: 0.4;
+
     --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     --blur-strength: 20px;
+}
+
+/* --- LIGHT THEME OVERRIDES --- */
+[data-theme="light"] {
+    --bg-main: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.85);
+    --bg-glass-light: rgba(0, 0, 0, 0.05);
+    --border-glass: rgba(0, 0, 0, 0.1);
+
+    --text-main: #0f172a;
+    --text-muted: #475569;
+
+    /* Darker gradient for text visibility on light bg */
+    --text-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+
+    --grid-line: rgba(0, 0, 0, 0.05);
+    --card-bg: rgba(0, 0, 0, 0.03);
+    --nav-btn-bg: rgba(0, 0, 0, 0.05);
+    --blob-opacity: 0.2;
+    /* Softer blobs in light mode */
+
+    --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -31,16 +53,39 @@
 
 body {
     font-family: 'Outfit', sans-serif;
-    background-color: var(--bg-dark);
-    /* Futuristic Grid Background */
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
+    background-color: var(--bg-main);
     color: var(--text-main);
+
+    /* Full Viewport Size */
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
-    /* Default for apps */
+    /* Prevents scroll on Dashboard/Auth */
+
+    /* --- CENTERING MAGIC --- */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* ----------------------- */
+
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    /* Grid Background */
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 50px 50px;
+}
+
+/* LANDING PAGE OVERRIDE: Restores Scrolling */
+.landing-body {
+    display: block !important;
+    /* Disable Flex centering */
+    overflow-y: auto !important;
+    /* Enable Vertical Scroll */
+    height: auto !important;
+    /* Allow page to grow */
+    min-height: 100vh;
 }
 
 /* Scrollbar Hiding Utility */
@@ -54,7 +99,7 @@ body {
 }
 
 /* =========================================
-   2. UTILITY CLASSES (Buttons, Inputs)
+   2. UTILITY CLASSES
    ========================================= */
 .text-gradient {
     background: var(--text-gradient);
@@ -63,29 +108,27 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
-/* Glass Inputs */
 .glass-input {
     width: 100%;
     padding: 14px 18px;
     background: var(--bg-glass-light);
     border: 1px solid var(--border-glass);
     border-radius: 12px;
-    color: white;
+    color: var(--text-main);
     font-size: 1rem;
     outline: none;
     transition: 0.3s;
 }
 
 .glass-input:focus {
-    border-color: #60a5fa;
-    background: rgba(255, 255, 255, 0.05);
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
 }
 
-/* Primary Action Button */
 .btn-primary {
     background: var(--primary-gradient);
     color: white;
-    padding: 14px 28px;
+    padding: 10px 20px;
     border-radius: 12px;
     border: none;
     font-weight: 600;
@@ -127,6 +170,8 @@ body {
 .logo {
     font-size: 1.8rem;
     font-weight: 700;
+    color: var(--text-main);
+    text-decoration: none;
 }
 
 .nav-link {
@@ -134,10 +179,11 @@ body {
     text-decoration: none;
     margin-right: 20px;
     transition: 0.2s;
+    font-weight: 500;
 }
 
 .nav-link:hover {
-    color: white;
+    color: var(--text-main);
 }
 
 .hero {
@@ -150,6 +196,7 @@ body {
     margin-bottom: 20px;
     font-weight: 700;
     line-height: 1.1;
+    color: var(--text-main);
 }
 
 .hero p {
@@ -159,7 +206,6 @@ body {
     margin: 0 auto 40px;
 }
 
-/* Feature Cards */
 .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -168,7 +214,7 @@ body {
 }
 
 .feature-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--card-bg);
     border: 1px solid var(--border-glass);
     padding: 30px;
     border-radius: 20px;
@@ -177,7 +223,16 @@ body {
 
 .feature-card:hover {
     transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.feature-card h3 {
+    color: var(--text-main);
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    color: var(--text-muted);
 }
 
 .feature-icon {
@@ -186,7 +241,6 @@ body {
     display: block;
 }
 
-/* Tech Stack Badges */
 .tech-grid {
     display: flex;
     flex-wrap: wrap;
@@ -207,13 +261,7 @@ body {
 /* =========================================
    4. AUTH PAGES (Login/Register)
    ========================================= */
-.auth-body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.split-card {
+.split-container {
     display: flex;
     width: 90%;
     max-width: 1000px;
@@ -225,9 +273,10 @@ body {
     border-radius: 24px;
     overflow: hidden;
     box-shadow: var(--shadow-card);
+    margin: auto;
 }
 
-.auth-left {
+.info-side {
     flex: 1;
     padding: 40px;
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.05));
@@ -236,23 +285,60 @@ body {
     flex-direction: column;
     justify-content: space-between;
     position: relative;
+    overflow: hidden;
 }
 
-.auth-right {
+.form-side {
     flex: 1;
     padding: 50px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-glass-light);
+    overflow-y: auto;
 }
 
-/* Animated Blobs */
+.form-header h2 {
+    font-size: 2rem;
+    color: var(--text-main);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.form-header p {
+    color: var(--text-muted);
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+}
+
+/* Auth Buttons */
+.login-btn,
+.signup-btn {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    margin-top: 10px;
+}
+
+.login-btn:hover,
+.signup-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+}
+
 .blob {
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    opacity: 0.4;
+    opacity: var(--blob-opacity);
     z-index: 0;
 }
 
@@ -272,23 +358,14 @@ body {
     background: #c084fc;
 }
 
-.quote-text {
-    font-size: 1.4rem;
-    font-weight: 500;
-    line-height: 1.4;
-    margin-bottom: 15px;
-    position: relative;
-    z-index: 1;
-}
-
 @media (max-width: 768px) {
-    .split-card {
+    .split-container {
         flex-direction: column;
         height: auto;
         margin: 20px;
     }
 
-    .auth-left {
+    .info-side {
         min-height: 200px;
     }
 
@@ -298,7 +375,7 @@ body {
 }
 
 /* =========================================
-   5. DASHBOARD (Home)
+   5. DASHBOARD LAYOUT
    ========================================= */
 .dashboard-wrapper {
     display: flex;
@@ -311,14 +388,13 @@ body {
     overflow: hidden;
     box-shadow: var(--shadow-card);
     margin: auto;
-    /* Centers it */
 }
 
-/* Sidebar */
 .sidebar {
     width: 300px;
     min-width: 300px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.05);
+    /* Slight tint */
     border-right: 1px solid var(--border-glass);
     display: flex;
     flex-direction: column;
@@ -334,7 +410,7 @@ body {
 .history-item {
     padding: 12px;
     margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-glass-light);
     border-radius: 10px;
     cursor: pointer;
     display: flex;
@@ -342,27 +418,36 @@ body {
     align-items: center;
     transition: 0.2s;
     border: 1px solid transparent;
+    color: var(--text-muted);
 }
 
 .history-item:hover,
 .history-item.active {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(59, 130, 246, 0.1);
     border-color: var(--border-glass);
+    color: var(--text-main);
 }
 
-.delete-icon {
+.action-btn {
     opacity: 0;
-    color: var(--danger);
-    background: none;
+    background: transparent;
     border: none;
+    color: var(--text-muted);
     cursor: pointer;
+    padding: 4px;
+    transition: all 0.2s;
+    display: flex;
 }
 
-.history-item:hover .delete-icon {
+.history-item:hover .action-btn {
     opacity: 1;
 }
 
-/* Profile Footer */
+.action-btn:hover {
+    color: var(--text-main);
+    transform: scale(1.1);
+}
+
 .profile-footer {
     margin-top: 20px;
     padding-top: 20px;
@@ -370,6 +455,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    color: var(--text-main);
 }
 
 .avatar {
@@ -377,6 +463,7 @@ body {
     height: 36px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     border-radius: 50%;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -384,7 +471,7 @@ body {
 }
 
 /* =========================================
-   6. CHAT AREA & MESSAGES (RESTORED)
+   6. CHAT AREA
    ========================================= */
 .chat-area {
     flex: 1;
@@ -394,21 +481,27 @@ body {
     background: transparent;
 }
 
-/* Restored Header */
 .chat-header {
-    padding: 20px 30px;
+    padding: 20px 0;
     border-bottom: 1px solid var(--border-glass);
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.02);
+    display: flex;
+    justify-content: center;
+}
+
+.chat-header>div {
+    width: 100%;
+    max-width: 900px;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    backdrop-filter: blur(10px);
 }
 
 .chat-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: white;
+    color: var(--text-main);
 }
 
 .chat-id {
@@ -419,14 +512,16 @@ body {
 
 .chat-messages {
     flex: 1;
-    padding: 30px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 20px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Base Bubble Style */
 .msg {
     max-width: 80%;
     padding: 15px 20px;
@@ -434,38 +529,30 @@ body {
     line-height: 1.6;
     font-size: 1rem;
     font-family: 'Outfit', sans-serif !important;
-    /* Force correct font */
-    position: relative;
     word-wrap: break-word;
 }
 
-/* Bot Message - Glass Style */
 .msg-bot {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass-light);
+    border: 1px solid var(--border-glass);
     border-bottom-left-radius: 4px;
     align-self: flex-start;
-    /* Fix stretching */
-    color: #e2e8f0;
+    color: var(--text-main);
 }
 
-/* User Message - Blue Gradient */
 .msg-user {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: var(--primary-gradient);
     color: white;
     align-self: flex-end;
-    /* Fix stretching */
     border-bottom-right-radius: 4px;
     box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
 }
 
-/* File Upload Card Style */
 .msg-file {
     align-self: center;
     background: rgba(16, 185, 129, 0.1);
-    /* Green tint */
     border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #34d399;
+    color: #10b981;
     padding: 10px 25px;
     border-radius: 50px;
     font-size: 0.95rem;
@@ -475,87 +562,161 @@ body {
     margin: 10px 0;
 }
 
-/* Fix Markdown Elements inside bubbles */
-.msg p {
-    margin: 0 0 10px 0;
-}
-
-.msg p:last-child {
-    margin: 0;
-}
-
-.msg pre {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 10px;
-    border-radius: 8px;
-    overflow-x: auto;
-    margin-top: 10px;
-}
-
-.msg code {
-    font-family: 'Courier New', monospace;
-    font-size: 0.9em;
-}
-
-/* Sidebar Buttons Fix (Remove white background) */
-.action-btn {
-    opacity: 0;
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 4px;
-    transition: all 0.2s ease-in-out;
+.input-zone {
+    padding: 30px 20px;
+    width: 100%;
     display: flex;
-    align-items: center;
     justify-content: center;
 }
 
-.history-item:hover .action-btn {
-    opacity: 1;
-    /* VISIBLE on hover */
-}
-
-.action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    transform: scale(1.1);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Input Bar */
-.input-zone {
-    padding: 30px 40px;
-}
-
 .input-wrapper {
-    background: rgba(255, 255, 255, 0.05);
+    width: 100%;
+    max-width: 900px;
+    background: var(--bg-glass-light);
     border: 1px solid var(--border-glass);
     border-radius: 16px;
     padding: 8px 15px;
     display: flex;
     align-items: center;
     gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .chat-input {
     flex: 1;
     background: transparent;
     border: none;
-    color: white;
+    color: var(--text-main);
     outline: none;
     padding: 10px;
     font-size: 1rem;
+}
+
+/* =========================================
+   7. MODAL STYLES
+   ========================================= */
+.glass-card {
+    background: var(--bg-main);
+    border: 1px solid var(--border-glass);
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+}
+
+/* --- TOGGLE SWITCH STYLES --- */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #3b82f6;
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* --- FIX: Make Footer Buttons Visible --- */
+.profile-footer .action-btn {
+    opacity: 1;
+    /* Always visible in footer */
+    color: var(--text-muted);
+    margin-left: 5px;
+}
+
+.profile-footer .action-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* --- TOGGLE SWITCH STYLES (Required for Dark Mode) --- */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #4b5563;
+    /* Darker gray for inactive state */
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #3b82f6;
+    /* Blue when active */
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
 }

@@ -7,12 +7,18 @@
     <title>Login - RecallAI</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 
 <body class="auth-body">
 
-    <div class="split-card">
-        <div class="auth-left">
+    <div class="split-container">
+        <div class="info-side">
             <div class="blob blob-1"></div>
             <div class="blob blob-2"></div>
             <a href="{% url 'landing' %}" style="text-decoration: none;">
@@ -28,7 +34,7 @@
             <div style="color: rgba(255,255,255,0.3); font-size: 0.8rem; z-index: 1;">&copy; 2026 RecallAI</div>
         </div>
 
-        <div class="auth-right no-scrollbar" style="overflow-y: auto;">
+        <div class="form-side no-scrollbar" style="overflow-y: auto;">
             <h2 style="font-size: 2rem; margin-bottom: 10px;">Welcome Back</h2>
             <p style="color: var(--text-muted); margin-bottom: 30px;">Enter credentials to access your second brain.</p>
 

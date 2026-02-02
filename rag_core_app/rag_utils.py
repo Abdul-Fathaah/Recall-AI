@@ -15,6 +15,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
+from .models import ChatMessage
 
 # === NEW IMPORTS ===
 from langchain_community.tools import DuckDuckGoSearchRun
@@ -124,28 +125,37 @@ def process_file(file_path, session_id):
         vector_store.save_local(db_path)    
 
 # === 2. SESSION-AWARE CHATBOT (Unchanged) ===
+# Updated get_answer with Memory
 def get_answer(query, session_id):
     db_path = get_db_path(session_id)
     
+    # --- MEMORY UPGRADE: Fetch last 6 messages ---
+    # We fetch them in reverse order (newest first) to get the latest, 
+    # then reverse back to chronological order for the AI.
+    recent_history = ChatMessage.objects.filter(session_id=session_id).order_by('-timestamp')[:6]
+    history_text = "\n".join([f"{'User' if msg.is_user else 'AI'}: {msg.text}" for msg in reversed(recent_history)])
+
     try:
         llm = ChatGroq(temperature=0.3, model_name="llama-3.1-8b-instant")
         
-        # KEYWORDS
+        # KEYWORDS for Web Search
         query_lower = query.lower()
         search_triggers = ["search", "find", "google", "online", "internet", "web", "price", "weather", "news"]
 
-        # ROUTE 1: WEB SEARCH
+        # ROUTE 1: WEB SEARCH (with History)
         if any(keyword in query_lower for keyword in search_triggers):
             search = DuckDuckGoSearchRun()
             try:
                 search_results = search.run(query)
-                prompt = ChatPromptTemplate.from_template("Search Results: {results}\nUser Question: {question}\nAnswer based on results.")
+                prompt = ChatPromptTemplate.from_template(
+                    "Chat History:\n{history}\n\nSearch Results: {results}\nUser Question: {question}\nAnswer based on results and history."
+                )
                 chain = prompt | llm | StrOutputParser()
-                return chain.invoke({"results": search_results, "question": query})
+                return chain.invoke({"history": history_text, "results": search_results, "question": query})
             except:
                 pass
 
-        # ROUTE 2: DOCUMENT SEARCH
+        # ROUTE 2: DOCUMENT SEARCH (with History)
         if db_path and os.path.exists(db_path):
             embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
             try:
@@ -155,16 +165,20 @@ def get_answer(query, session_id):
                 
                 if docs:
                     context_text = "\n\n".join([d.page_content for d in docs])
-                    prompt = ChatPromptTemplate.from_template("Context from files:\n{context}\n\nQuestion: {question}\nAnswer based on context.")
+                    prompt = ChatPromptTemplate.from_template(
+                        "Chat History:\n{history}\n\nContext from files:\n{context}\n\nQuestion: {question}\nAnswer based on context and history."
+                    )
                     chain = prompt | llm | StrOutputParser()
-                    return chain.invoke({"context": context_text, "question": query})
+                    return chain.invoke({"history": history_text, "context": context_text, "question": query})
             except Exception:
                 pass 
 
-        # ROUTE 3: GENERAL CHAT
-        prompt = ChatPromptTemplate.from_template("You are a helpful assistant. User: {question}")
+        # ROUTE 3: GENERAL CHAT (with History)
+        prompt = ChatPromptTemplate.from_template(
+            "Chat History:\n{history}\n\nYou are a helpful assistant. User: {question}"
+        )
         chain = prompt | llm | StrOutputParser()
-        return chain.invoke({"question": query})
+        return chain.invoke({"history": history_text, "question": query})
 
     except Exception as e:
         return f"Error: {str(e)}"

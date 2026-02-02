@@ -1,0 +1,15 @@
+django>=4.0.0
+mysqlclient
+python-dotenv
+langchain
+langchain-community
+langchain-groq
+langchain-huggingface
+faiss-cpu
+sentence-transformers
+pytesseract
+pdf2image
+pymupdf
+docx2txt
+openpyxl
+unstructured

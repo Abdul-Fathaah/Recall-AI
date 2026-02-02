@@ -1,10 +1,10 @@
-# RecallAI - Personalized RAG Chatbot
+# Recall AI - Personalized RAG Chatbot
 
-**RecallAI** is a powerful, Django-based AI assistant that uses **Retrieval-Augmented Generation (RAG)** to allow users to upload documents (PDFs, text files) and chat with them intelligently. It features a modern **Liquid Glassmorphism UI**, persistent chat history, and session-based memory using **FAISS** and **Groq's Llama 3**.
+**Recall AI** is a powerful, Django-based AI assistant that uses **Retrieval-Augmented Generation (RAG)** to allow users to upload documents (PDFs, text files, etc.) and chat with them intelligently. It features a modern **Liquid Glassmorphism UI**, persistent chat history, and session-based memory using **FAISS** and **Groq's Llama 3**.
 
 ## 🚀 Features
 
-* **📄 Document Q&A**: Upload multiple PDF or TXT files and ask questions based on their content.
+* **📄 Document Q&A**: Upload multiple PDF, TXT, DOCX, PPTX, XLSX, or CSV files and ask questions based on their content.
 * **🧠 Advanced RAG Engine**: Uses **LangChain** and **FAISS** vector stores to retrieve relevant context for every query.
 * **⚡ Fast Inference**: Powered by **Groq API** (Llama-3.1-8b-instant) for lightning-fast responses.
 * **👁️ OCR Capabilities**: Integrated **Tesseract OCR** & **pdf2image** to extract text from scanned documents or images.
@@ -15,7 +15,7 @@
 ## 🛠️ Tech Stack
 
 * **Backend:** Django 4.x, Python 3.10+
-* **AI/ML:** LangChain, FAISS (Vector Store), Groq API (LLM)
+* **AI/ML:** LangChain, FAISS (Vector Store), Groq API (LLM), Sentence Transformers
 * **Database:** MySQL (Production-ready data persistence)
 * **Frontend:** HTML5, CSS3 (Custom Glassmorphism), Vanilla JavaScript
 * **Utilities:** Pytesseract (OCR), Poppler (PDF processing)
@@ -39,9 +39,10 @@ Before running the project, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/yourusername/recallai-chatbot.git](https://github.com/yourusername/recallai-chatbot.git)
-cd recallai-chatbot
+git clone https://github.com/yourusername/recall-ai.git
+cd recall-ai
 ```
+
 ### 2. Create and Activate Virtual Environment
 ```bash
 # Windows
@@ -52,22 +53,16 @@ venv\Scripts\activate
 python3 -m venv venv
 source venv/bin/activate
 ```
+
 ### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
-Note: If requirements.txt is missing, install the core packages: 
-
-```bash
-pip install django mysqlclient langchain langchain-community langchain-groq faiss-cpu
-pip install python-dotenv
-pip install pdf2image pytesseract
-```
 
 ### 4. Configure Environment Variables
-Create a .env file in the root directory and add the following:
+Create a `.env` file in the root directory and add the following:
 
-```Code snippet
+```env
 # Django Settings
 DEBUG=True
 DJANGO_SECRET_KEY=your_django_secret_key_here
@@ -84,9 +79,11 @@ GROQ_API_KEY=your_groq_api_key_here
 
 # Optional: Path to Poppler/Tesseract if not in system PATH
 # POPPLER_PATH=C:/Program Files/poppler/bin
+# TESSERACT_CMD=C:/Program Files/Tesseract-OCR/tesseract.exe
 ```
+
 ### 5. Setup Database
-Make sure your MySQL server is running and you have created a database named recallai_db (or whatever you named it in .env).
+Make sure your MySQL server is running and you have created a database named `recallai_db` (or whatever you named it in `.env`).
 
 ```bash
 python manage.py makemigrations
@@ -101,43 +98,48 @@ Visit http://127.0.0.1:8000/ in your browser.
 
 ## 📖 Usage Guide
 
-**1.Register/Login: Create an account to access your personal dashboard.**
-
-**2.New Chat: Click "+ New Chat" in the sidebar to start a fresh session.**
-
-**3.Upload Files: Click the Paperclip (📎) icon to upload PDFs or Text files.**
-
-**The system will index these files immediately.**
-
-**4.Chat: Type your query. The AI will search your uploaded files and provide an answer based only on that context.**
-
-**5.Manage History: You can delete old chat sessions from the sidebar using the '🗑️' button.**
+1.  **Register/Login**: Create an account to access your personal dashboard.
+2.  **New Chat**: Click "+ New Chat" in the sidebar to start a fresh session.
+3.  **Upload Files**: Click the Paperclip (📎) icon to upload PDFs or Text files. The system will index these files immediately.
+4.  **Chat**: Type your query. The AI will search your uploaded files and provide an answer based only on that context.
+5.  **Manage History**: View past conversations or clear sessions using the sidebar controls.
 
 ## 📂 Project Structure
 ```
-RecallAI-ChatBot/
+Recall-AI/
 ├── ChatBot/                 # Main Django Project Config
-│   ├── settings.py          # App settings (DB, Middleware, Installed Apps)
+│   ├── settings.py          # App settings
 │   ├── urls.py              # Main URL routing
 │   └── ...
 ├── rag_core_app/            # Core Application Logic
 │   ├── migrations/          # DB Migrations
 │   ├── templates/           # HTML Files (Home, Login, Register)
+│   │   ├── landing.html
+│   │   ├── register.html
+│   │   ├── login.html
+│   │   └── home.html
 │   ├── models.py            # DB Models (Document, ChatSession, ChatMessage)
 │   ├── rag_utils.py         # RAG Logic (LangChain, FAISS, OCR, Groq)
 │   ├── views.py             # API Views & Page Rendering
-│   └── ...
+│   └── forms.py             # Forms for Auth and Uploads
 ├── static/
-│   └── css/
-│       └── style.css        # Liquid Glassmorphism Styles
+│   ├── css/
+│   │   ├── auth.css         # Auth specific styles
+│   │   ├── dashboard.css    # Main app styles
+│   │   ├── landing.css      # Landing page styles
+│   │   └── style.css        # Shared/Base styles
+│   └── js/
+│       ├── dashboard.js     # Chat interactivity and file upload
+│       └── theme.js         # Theme handling
 ├── faiss_indexes/           # Local storage for Vector Embeddings (GitIgnored)
 ├── media/                   # User uploaded files (GitIgnored)
 ├── manage.py
+├── requirements.txt         # Project Dependencies
 └── .env                     # Environment Variables
 ```
 
-🤝 Contributing
+## 🤝 Contributing
 Contributions are welcome! Please fork the repository and create a pull request for any feature updates or bug fixes.
 
-📄 License
+## 📄 License
 This project is open-source and available under the MIT License.

@@ -5,15 +5,13 @@
 <head>
     <meta charset="UTF-8">
     <title>RecallAI Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.1">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-        (function () {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        })();
-    </script>
+    <!-- DOMPurify for sanitization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="{% static 'js/theme.js' %}?v=1.1"></script>
 </head>
 
 <body>
@@ -264,140 +262,12 @@
         </div>
     </div>
 
+    <!-- Inject Session ID for JS -->
     <script>
-        let currentSessionId = "{{ current_session.id|default:'null' }}";
-        function getCsrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]').value; }
-
-        function openSettingsModal() {
-            document.getElementById('settingsModal').style.display = 'flex';
-            // Sync checkbox with current theme
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            document.getElementById('themeToggleCheckbox').checked = (currentTheme === 'dark');
-        }
-
-        function toggleThemeModal(checkbox) {
-            const newTheme = checkbox.checked ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-
-        // --- SECURITY: BACK BUTTON TRAP ---
-        function showLogoutConfirmation() {
-            document.getElementById('logoutConfirmModal').style.display = 'flex';
-        }
-
-        // Push state on load
-        history.pushState(null, null, location.href);
-
-        // Intercept Back Button
-        window.onpopstate = function () {
-            // Push state again so they stay on the page
-            history.pushState(null, null, location.href);
-            // Show the modal
-            showLogoutConfirmation();
-        };
-        // ----------------------------------
-
-        function openRenameModal(event, sessionId, currentTitle) {
-            event.stopPropagation();
-            const modal = document.getElementById('renameModal');
-            document.getElementById('renameForm').action = `/rename_chat/${sessionId}/`;
-            document.getElementById('newTitleInput').value = currentTitle;
-            modal.style.display = 'flex';
-        }
-
-        window.onclick = function (e) {
-            if (e.target == document.getElementById('renameModal')) document.getElementById('renameModal').style.display = "none";
-            if (e.target == document.getElementById('logoutConfirmModal')) document.getElementById('logoutConfirmModal').style.display = "none";
-            // Note: Settings modal close is handled by the close button or you can add it here too
-            if (e.target == document.getElementById('settingsModal')) document.getElementById('settingsModal').style.display = "none";
-        }
-
-        // Markdown & Scroll
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll('.msg-bot').forEach(msg => {
-                // [SECURE] Sanitize parsed Markdown before setting innerHTML
-                if (!msg.innerHTML.includes('<')) {
-                    const parsed = marked.parse(msg.innerHTML.trim());
-                    msg.innerHTML = DOMPurify.sanitize(parsed);
-                }
-            });
-            scrollToBottom();
-        });
-
-        function scrollToBottom() { const box = document.getElementById('chat-box'); box.scrollTop = box.scrollHeight; }
-
-        // Upload
-        function uploadFiles(files) {
-            if (!files.length) return;
-            document.getElementById('upload-progress').innerText = "⏳ Analyzing documents...";
-            const formData = new FormData();
-            for (let i = 0; i < files.length; i++) formData.append('files', files[i]);
-            formData.append('session_id', currentSessionId);
-            formData.append('csrfmiddlewaretoken', getCsrfToken());
-
-            fetch('{% url "upload_api" %}', { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        if (data.session_id && currentSessionId === 'null') {
-                            currentSessionId = data.session_id;
-                            window.history.replaceState({}, '', `?session_id=${data.session_id}`);
-                        }
-                        location.reload();
-                    } else { document.getElementById('upload-progress').innerText = "❌ Upload Failed"; }
-                });
-        }
-
-        function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
-
-        function sendMessage() {
-            const input = document.getElementById('user-input');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            const box = document.getElementById('chat-box');
-            // User message is safe because we use innerText/textContent equivalent or simple div text
-            // But let's act cautiously. Django template escapes {{ msg.text }}, but here we are appending.
-            // Using template literal for user msg is generally okay if it doesn't contain HTML, 
-            // but for total safety, we should escape this too or let the div treat it as text.
-            // However, sticking to the specific fix for the Bot Response XSS:
-
-            const userDiv = document.createElement('div');
-            userDiv.className = 'msg msg-user';
-            userDiv.textContent = msg; // [SECURE] Prevents HTML injection from user input
-            box.appendChild(userDiv);
-
-            input.value = '';
-            scrollToBottom();
-
-            const loadingId = 'loading-' + Date.now();
-            box.innerHTML += `<div id="${loadingId}" class="msg msg-bot" style="opacity:0.7;">Thinking...</div>`;
-            scrollToBottom();
-
-            const formData = new FormData();
-            formData.append('message', msg);
-            formData.append('session_id', currentSessionId);
-            formData.append('csrfmiddlewaretoken', getCsrfToken());
-
-            fetch('{% url "chat_api" %}', { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById(loadingId).remove();
-                    if (currentSessionId === 'null' && data.session_id) {
-                        currentSessionId = data.session_id;
-                        window.history.replaceState({}, '', `?session_id=${data.session_id}`);
-                        setTimeout(() => location.reload(), 2000);
-                    }
-
-                    // [SECURE] Sanitize the LLM response
-                    const cleanHtml = DOMPurify.sanitize(marked.parse(data.response));
-                    box.innerHTML += `<div class="msg msg-bot">${cleanHtml}</div>`;
-
-                    scrollToBottom();
-                });
-        }
+        // Pass server-side variables to JS safely
+        var currentSessionId = "{{ current_session.id|default:'null' }}";
     </script>
+    <script src="{% static 'js/dashboard.js' %}?v=1.1"></script>
 </body>
 
 </html>

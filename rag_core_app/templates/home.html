@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>RecallAI Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
@@ -316,7 +316,11 @@
         // Markdown & Scroll
         document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll('.msg-bot').forEach(msg => {
-                if (!msg.innerHTML.includes('<')) { msg.innerHTML = marked.parse(msg.innerHTML.trim()); }
+                // [SECURE] Sanitize parsed Markdown before setting innerHTML
+                if (!msg.innerHTML.includes('<')) {
+                    const parsed = marked.parse(msg.innerHTML.trim());
+                    msg.innerHTML = DOMPurify.sanitize(parsed);
+                }
             });
             scrollToBottom();
         });
@@ -353,7 +357,17 @@
             if (!msg) return;
 
             const box = document.getElementById('chat-box');
-            box.innerHTML += `<div class="msg msg-user">${msg}</div>`;
+            // User message is safe because we use innerText/textContent equivalent or simple div text
+            // But let's act cautiously. Django template escapes {{ msg.text }}, but here we are appending.
+            // Using template literal for user msg is generally okay if it doesn't contain HTML, 
+            // but for total safety, we should escape this too or let the div treat it as text.
+            // However, sticking to the specific fix for the Bot Response XSS:
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'msg msg-user';
+            userDiv.textContent = msg; // [SECURE] Prevents HTML injection from user input
+            box.appendChild(userDiv);
+
             input.value = '';
             scrollToBottom();
 
@@ -375,7 +389,11 @@
                         window.history.replaceState({}, '', `?session_id=${data.session_id}`);
                         setTimeout(() => location.reload(), 2000);
                     }
-                    box.innerHTML += `<div class="msg msg-bot">${marked.parse(data.response)}</div>`;
+
+                    // [SECURE] Sanitize the LLM response
+                    const cleanHtml = DOMPurify.sanitize(marked.parse(data.response));
+                    box.innerHTML += `<div class="msg msg-bot">${cleanHtml}</div>`;
+
                     scrollToBottom();
                 });
         }

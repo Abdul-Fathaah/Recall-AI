@@ -36,7 +36,12 @@ def get_db_path(session_id):
 # === 1. DOCUMENT LOADING ===
 def extract_text_with_ocr(file_path):
     try:
-        # OCR is primarily for Scanned PDFs
+        # [FIX] Check if dependencies are actually callable
+        import shutil
+        if not shutil.which("tesseract"):
+            print("Warning: Tesseract-OCR is not installed. Skipping OCR.")
+            return ""
+            
         poppler_path = os.getenv("POPPLER_PATH") 
         if poppler_path:
              images = convert_from_path(file_path, poppler_path=poppler_path)
@@ -76,7 +81,7 @@ def get_loader(file_path):
 def process_file(file_path, session_id):
     if not session_id:
         print("Error: No session ID provided for processing.")
-        return
+        return False
 
     db_path = get_db_path(session_id)
     print(f"Processing {file_path} for Session {session_id}...")
@@ -87,7 +92,7 @@ def process_file(file_path, session_id):
         documents = loader.load()
     except Exception as e:
         print(f"Error loading file {file_path}: {e}")
-        return
+        return False
 
     # Check for empty content (e.g., Scanned PDFs)
     raw_text = "".join([doc.page_content for doc in documents])
@@ -100,7 +105,7 @@ def process_file(file_path, session_id):
             from langchain.schema import Document
             documents = [Document(page_content=ocr_text, metadata={"source": file_path})]
         else:
-            return
+            return False
 
     # Split & Embed
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -108,7 +113,9 @@ def process_file(file_path, session_id):
     
     if not docs:
         print("No content found to index.")
-        return
+        return False
+
+    return True
 
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
     

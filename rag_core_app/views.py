@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden
 from django.core.exceptions import ValidationError
 from .rag_utils import get_answer, process_file, clear_data, generate_chat_title
-from .forms import SignUpForm, UserUpdateForm, UserLoginForm
+from .forms import SignUpForm, UserUpdateForm, UserLoginForm, DocumentForm
 from .models import Document, ChatSession, ChatMessage
 
 # === SECURITY CONFIGURATION ===
@@ -66,34 +66,37 @@ def home(request):
 
 @login_required
 def upload_api(request):
-    if request.method == 'POST' and request.FILES.getlist('files'):
+    if request.method == 'POST':
         session_id = request.POST.get('session_id')
         
-        # 1. Create session if needed
+        # 1. Create/Get Session Logic (Keep your existing logic here)
         if not session_id or session_id == 'null':
             new_session = ChatSession.objects.create(user=request.user, title="New Uploaded Chat")
             session_id = new_session.id
-        
-        # 2. Validate Session Ownership
         session = get_object_or_404(ChatSession, id=session_id, user=request.user)
         
+        # 2. Use the Form for Validation
         files = request.FILES.getlist('files')
         results = []
         
         for f in files:
-            # === SECURITY CHECK: File Extension ===
-            ext = os.path.splitext(f.name)[1].lower()
-            if ext not in ALLOWED_EXTENSIONS:
-                return JsonResponse({'status': 'error', 'message': f'File type {ext} not allowed'}, status=400)
+            # Create a form instance with the file data
+            form = DocumentForm(data={'file': f}, files={'file': f})
             
-            # === SECURITY CHECK: File Size ===
-            if f.size > MAX_UPLOAD_SIZE:
-                return JsonResponse({'status': 'error', 'message': f'{f.name} is too large (Max 10MB)'}, status=400)
-            
-            # Process Valid File
-            doc = Document.objects.create(file=f, name=f.name, size=f"{f.size/1024:.2f} KB")
-            process_file(doc.file.path, session.id)
-            results.append({'name': f.name, 'status': 'Indexed'})
+            if form.is_valid():
+                # Save the file securely
+                doc = form.save(commit=False)
+                doc.name = f.name
+                doc.size = f"{f.size/1024:.2f} KB"
+                doc.save()
+                
+                # Process the file (using the fix you applied earlier)
+                success = process_file(doc.file.path, session.id)
+                status_text = 'Indexed' if success else 'Failed (OCR/Empty)'
+                results.append({'name': f.name, 'status': status_text})
+            else:
+                # Handle Validation Error
+                results.append({'name': f.name, 'status': 'Invalid Type'})
             
         # Add system messages
         file_names = ", ".join([f.name for f in files])

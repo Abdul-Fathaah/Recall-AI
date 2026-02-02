@@ -18,10 +18,6 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-import os.path
-TEMPLATE_DIRS = ( os.path.join(os.path.dirname(__file__), 'templates'),)
-STATICFILES_DIRS = ((os.path.join( os.path.dirname( __file__ ), 'rag_core_app/static' )),)
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

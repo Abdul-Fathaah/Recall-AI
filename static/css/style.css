@@ -7,41 +7,30 @@
     --bg-glass: rgba(15, 23, 42, 0.6);
     --bg-glass-light: rgba(255, 255, 255, 0.03);
     --border-glass: rgba(255, 255, 255, 0.1);
-
     --text-main: #f1f5f9;
     --text-muted: #94a3b8;
-
     --primary-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
     --text-gradient: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-
     --grid-line: rgba(255, 255, 255, 0.03);
     --card-bg: rgba(255, 255, 255, 0.02);
     --nav-btn-bg: rgba(255, 255, 255, 0.08);
     --blob-opacity: 0.4;
-
     --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     --blur-strength: 20px;
 }
 
-/* --- LIGHT THEME OVERRIDES --- */
 [data-theme="light"] {
     --bg-main: #ffffff;
     --bg-glass: rgba(255, 255, 255, 0.85);
     --bg-glass-light: rgba(0, 0, 0, 0.05);
     --border-glass: rgba(0, 0, 0, 0.1);
-
     --text-main: #0f172a;
     --text-muted: #475569;
-
-    /* Darker gradient for text visibility on light bg */
     --text-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-
     --grid-line: rgba(0, 0, 0, 0.05);
     --card-bg: rgba(0, 0, 0, 0.03);
     --nav-btn-bg: rgba(0, 0, 0, 0.05);
     --blob-opacity: 0.2;
-    /* Softer blobs in light mode */
-
     --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
 }
 
@@ -55,29 +44,19 @@ body {
     font-family: 'Outfit', sans-serif;
     background-color: var(--bg-main);
     color: var(--text-main);
-
-    /* Full Viewport Size */
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    /* Prevents scroll on Dashboard/Auth */
-
-    /* --- CENTERING MAGIC --- */
     display: flex;
     align-items: center;
     justify-content: center;
-    /* ----------------------- */
-
     transition: background-color 0.3s ease, color 0.3s ease;
-
-    /* Grid Background */
     background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 50px 50px;
 }
 
-/* Scrollbar Hiding Utility */
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }

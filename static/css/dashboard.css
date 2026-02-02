@@ -1,6 +1,3 @@
-/* =========================================
-   DASHBOARD LAYOUT
-   ========================================= */
 .dashboard-wrapper {
     display: flex;
     width: 95vw;
@@ -18,7 +15,6 @@
     width: 300px;
     min-width: 300px;
     background: rgba(0, 0, 0, 0.05);
-    /* Slight tint */
     border-right: 1px solid var(--border-glass);
     display: flex;
     flex-direction: column;

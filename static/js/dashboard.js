@@ -118,7 +118,7 @@ function sendMessage() {
     formData.append('session_id', currentSessionId);
     formData.append('csrfmiddlewaretoken', getCsrfToken());
 
-    fetch('/chat_api/', { method: 'POST', body: formData })
+    fetch('/api/chat/', { method: 'POST', body: formData })
         .then(res => res.json())
         .then(data => {
             document.getElementById(loadingId).remove();

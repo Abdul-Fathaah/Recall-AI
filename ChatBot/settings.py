@@ -45,6 +45,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -138,3 +139,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SESSION_COOKIE_SECURE = True
 # SECURE_BROWSER_XSS_FILTER = True
 # SECURE_CONTENT_TYPE_NOSNIFF = True
+
+
+JAZZMIN_SETTINGS = {
+    "site_title": "RecallAI",
+    "site_header": "RecallAI",
+    "site_brand": "RecallAI",
+    "copyright": "RecallAI Systems",
+    "welcome_sign": "Welcome to the Neural Core",
+    "search_model": ["auth.User", "rag_core_app.ChatSession"],
+    
+    # UI Customizer
+    "topmenu_links": [
+        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "View Site", "url": "home", "new_window": True},
+    ],
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly",  
+    "navbar": "navbar-dark",
+}

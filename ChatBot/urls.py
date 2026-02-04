@@ -2,8 +2,12 @@ from django.contrib import admin
 from django.urls import path
 from rag_core_app import views
 
+admin.site.site_header = "RecallAI Administration"
+admin.site.site_title = "RecallAI Admin Portal"
+admin.site.index_title = "Welcome to the Second Brain"
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('rootpanel/', admin.site.urls),
     # Pages
     path('', views.landing, name='landing'),
     path('register/', views.register, name='register'),
@@ -11,7 +15,7 @@ urlpatterns = [
     path('logout/', views.user_logout, name='logout'),
     path('home/', views.home, name='home'),
     
-    # API Endpoints (The brain)
+    # API Endpoints
     path('api/chat/', views.chat_api, name='chat_api'),
     path('api/upload/', views.upload_api, name='upload_api'),
 

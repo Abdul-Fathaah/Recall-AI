@@ -21,7 +21,7 @@ class DocumentForm(forms.ModelForm):
     def clean_file(self):
         file = self.cleaned_data['file']
         ext = file.name.split('.')[-1].lower()
-        if ext not in ['pdf', 'txt', 'docx', 'pptx', 'xlsx', 'csv']:
+        if ext not in ['pdf', 'txt', 'docx', 'pptx', 'xlsx', 'csv', 'png', 'jpg', 'jpeg']:
             raise forms.ValidationError("Unsupported file type.")
         return file
 
@@ -43,5 +43,4 @@ class UserUpdateForm(GlassStyleMixin, forms.ModelForm):
     
     class Meta:
         model = User
-        # Added 'username' to the fields list
         fields = ['username', 'first_name', 'last_name', 'email']

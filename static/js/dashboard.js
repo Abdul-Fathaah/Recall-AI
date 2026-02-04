@@ -79,7 +79,7 @@ function uploadFiles(files) {
     formData.append('session_id', currentSessionId);
     formData.append('csrfmiddlewaretoken', getCsrfToken());
 
-    fetch('/upload_api/', { method: 'POST', body: formData })
+    fetch('/api/upload/', { method: 'POST', body: formData })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {

@@ -11,7 +11,7 @@ from .models import Document, ChatSession, ChatMessage
 
 # === SECURITY CONFIGURATION ===
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
-ALLOWED_EXTENSIONS = ['.pdf', '.txt', '.docx', '.pptx', '.xlsx', '.csv']
+ALLOWED_EXTENSIONS = ['.pdf', '.txt', '.docx', '.pptx', '.xlsx', '.csv', '.png', '.jpg', '.jpeg']
 
 # === AUTHENTICATION ===
 
@@ -90,7 +90,6 @@ def upload_api(request):
                 doc.size = f"{f.size/1024:.2f} KB"
                 doc.save()
                 
-                # Process the file (using the fix you applied earlier)
                 success = process_file(doc.file.path, session.id)
                 status_text = 'Indexed' if success else 'Failed (OCR/Empty)'
                 results.append({'name': f.name, 'status': status_text})

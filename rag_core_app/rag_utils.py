@@ -1,6 +1,7 @@
 import os
 import shutil
 import pytesseract
+from PIL import Image
 from pdf2image import convert_from_path
 from langchain_community.document_loaders import (
     PyMuPDFLoader, 
@@ -11,13 +12,11 @@ from langchain_community.document_loaders import (
     CSVLoader
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from .models import ChatMessage
-
-# === NEW IMPORTS ===
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -25,7 +24,17 @@ from langchain_core.output_parsers import StrOutputParser
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
 
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+
+# === ⚡ OPTIMIZATION: Load Model ONCE Globaly ===
+print("⏳ Loading Embedding Model... (This happens only once)")
+try:
+    # This keeps the model in RAM so we don't reload it every time
+    GLOBAL_EMBEDDINGS = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+    print("✅ Embedding Model Ready!")
+except Exception as e:
+    print(f"❌ Failed to load embedding model: {e}")
+    GLOBAL_EMBEDDINGS = None
 
 # === HELPER: Get Unique Path per Session ===
 def get_db_path(session_id):
@@ -36,7 +45,6 @@ def get_db_path(session_id):
 # === 1. DOCUMENT LOADING ===
 def extract_text_with_ocr(file_path):
     try:
-        # [FIX] Check if dependencies are actually callable
         import shutil
         if not shutil.which("tesseract"):
             print("Warning: Tesseract-OCR is not installed. Skipping OCR.")
@@ -49,7 +57,9 @@ def extract_text_with_ocr(file_path):
              images = convert_from_path(file_path)
         
         full_text = ""
-        for i, image in enumerate(images):
+        # OPTIMIZATION: Limit OCR to first 5 pages to prevent timeouts on large books
+        # You can remove [:5] if you want to scan everything regardless of time.
+        for i, image in enumerate(images[:5]): 
             text = pytesseract.image_to_string(image)
             full_text += text + "\n"
         return full_text
@@ -58,47 +68,52 @@ def extract_text_with_ocr(file_path):
         return ""
 
 def get_loader(file_path):
-    """Factory function to get the correct loader based on extension"""
     ext = os.path.splitext(file_path)[1].lower()
-    
-    if ext == ".pdf":
-        return PyMuPDFLoader(file_path)
-    elif ext == ".txt":
-        return TextLoader(file_path, encoding='utf-8')
-    elif ext in [".docx", ".doc"]:
-        return Docx2txtLoader(file_path)
-    elif ext in [".pptx", ".ppt"]:
-        return UnstructuredPowerPointLoader(file_path)
-    elif ext in [".xlsx", ".xls"]:
-        return UnstructuredExcelLoader(file_path)
-    elif ext == ".csv":
-        return CSVLoader(file_path)
-    else:
-        # Fallback for unknown text-based files (code, json, etc)
-        return TextLoader(file_path, autodetect_encoding=True)
+    if ext == ".pdf": return PyMuPDFLoader(file_path)
+    elif ext == ".txt": return TextLoader(file_path, encoding='utf-8')
+    elif ext in [".docx", ".doc"]: return Docx2txtLoader(file_path)
+    elif ext in [".pptx", ".ppt"]: return UnstructuredPowerPointLoader(file_path)
+    elif ext in [".xlsx", ".xls"]: return UnstructuredExcelLoader(file_path)
+    elif ext == ".csv": return CSVLoader(file_path)
+    else: return TextLoader(file_path, autodetect_encoding=True)
 
 # === UPDATED PROCESS FILE ===
 def process_file(file_path, session_id):
-    if not session_id:
-        print("Error: No session ID provided for processing.")
+    if not session_id or not GLOBAL_EMBEDDINGS:
         return False
 
     db_path = get_db_path(session_id)
     print(f"Processing {file_path} for Session {session_id}...")
     
     documents = []
+    ext = os.path.splitext(file_path)[1].lower()
+
     try:
-        loader = get_loader(file_path)
-        documents = loader.load()
+        # Check for Image Files
+        if ext in ['.png', '.jpg', '.jpeg']:
+            print("Image detected. Running OCR...")
+            try:
+                text = pytesseract.image_to_string(Image.open(file_path))
+                if text.strip():
+                    from langchain.docstore.document import Document
+                    documents = [Document(page_content=text, metadata={"source": file_path})]
+                else:
+                    return False
+            except Exception:
+                return False
+
+        # Handle standard documents
+        else:
+            loader = get_loader(file_path)
+            documents = loader.load()
+            
     except Exception as e:
-        print(f"Error loading file {file_path}: {e}")
+        print(f"Error loading file: {e}")
         return False
 
-    # Check for empty content (e.g., Scanned PDFs)
+    # OCR Fallback
     raw_text = "".join([doc.page_content for doc in documents])
-    
-    # OCR Fallback: Only run this for PDFs that came back empty
-    if len(raw_text.strip()) < 50 and file_path.lower().endswith(".pdf"):
+    if len(raw_text.strip()) < 50 and ext == ".pdf":
         print("Text too short. Attempting OCR...")
         ocr_text = extract_text_with_ocr(file_path)
         if ocr_text.strip():
@@ -112,44 +127,38 @@ def process_file(file_path, session_id):
     docs = text_splitter.split_documents(documents)
     
     if not docs:
-        print("No content found to index.")
+        print("No content found.")
         return False
 
-    return True
-
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-    
+    # === USE GLOBAL MODEL ===
     if os.path.exists(db_path):
         try:
-            vector_store = FAISS.load_local(db_path, embeddings, allow_dangerous_deserialization=True)
+            vector_store = FAISS.load_local(db_path, GLOBAL_EMBEDDINGS, allow_dangerous_deserialization=True)
             vector_store.add_documents(docs)
             vector_store.save_local(db_path)
         except:
-            vector_store = FAISS.from_documents(docs, embeddings)
+            vector_store = FAISS.from_documents(docs, GLOBAL_EMBEDDINGS)
             vector_store.save_local(db_path)
     else:
-        vector_store = FAISS.from_documents(docs, embeddings)
+        vector_store = FAISS.from_documents(docs, GLOBAL_EMBEDDINGS)
         vector_store.save_local(db_path)    
 
-# === 2. SESSION-AWARE CHATBOT (Unchanged) ===
-# Updated get_answer with Memory
+    return True
+
+# === 2. SESSION-AWARE CHATBOT ===
 def get_answer(query, session_id):
     db_path = get_db_path(session_id)
     
-    # --- MEMORY UPGRADE: Fetch last 6 messages ---
-    # We fetch them in reverse order (newest first) to get the latest, 
-    # then reverse back to chronological order for the AI.
     recent_history = ChatMessage.objects.filter(session_id=session_id).order_by('-timestamp')[:6]
     history_text = "\n".join([f"{'User' if msg.is_user else 'AI'}: {msg.text}" for msg in reversed(recent_history)])
 
     try:
         llm = ChatGroq(temperature=0.3, model_name="llama-3.1-8b-instant")
         
-        # KEYWORDS for Web Search
+        # Web Search Trigger
         query_lower = query.lower()
         search_triggers = ["search", "find", "google", "online", "internet", "web", "price", "weather", "news"]
 
-        # ROUTE 1: WEB SEARCH (with History)
         if any(keyword in query_lower for keyword in search_triggers):
             search = DuckDuckGoSearchRun()
             try:
@@ -162,11 +171,10 @@ def get_answer(query, session_id):
             except:
                 pass
 
-        # ROUTE 2: DOCUMENT SEARCH (with History)
-        if db_path and os.path.exists(db_path):
-            embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+        # === USE GLOBAL MODEL ===
+        if db_path and os.path.exists(db_path) and GLOBAL_EMBEDDINGS:
             try:
-                vector_store = FAISS.load_local(db_path, embeddings, allow_dangerous_deserialization=True)
+                vector_store = FAISS.load_local(db_path, GLOBAL_EMBEDDINGS, allow_dangerous_deserialization=True)
                 retriever = vector_store.as_retriever(search_kwargs={"k": 3})
                 docs = retriever.invoke(query)
                 
@@ -180,7 +188,7 @@ def get_answer(query, session_id):
             except Exception:
                 pass 
 
-        # ROUTE 3: GENERAL CHAT (with History)
+        # General Chat
         prompt = ChatPromptTemplate.from_template(
             "Chat History:\n{history}\n\nYou are a helpful assistant. User: {question}"
         )
@@ -190,7 +198,7 @@ def get_answer(query, session_id):
     except Exception as e:
         return f"Error: {str(e)}"
 
-# === 3. MEMORY MANAGEMENT (Unchanged) ===
+# === 3. MEMORY MANAGEMENT ===
 def clear_data(session_id):
     db_path = get_db_path(session_id)
     if db_path and os.path.exists(db_path):
@@ -199,7 +207,7 @@ def clear_data(session_id):
         except Exception:
             pass
 
-# === 4. TITLE GENERATOR (Unchanged) ===
+# === 4. TITLE GENERATOR ===
 def generate_chat_title(user_message, bot_response):
     try:
         llm = ChatGroq(temperature=0.3, model_name="llama-3.1-8b-instant")

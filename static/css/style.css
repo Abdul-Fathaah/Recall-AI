@@ -2,36 +2,94 @@
    1. VARIABLES & THEME CONFIGURATION
    ========================================= */
 :root {
-    /* --- DARK THEME (DEFAULT) --- */
-    --bg-main: #050505;
-    --bg-glass: rgba(15, 23, 42, 0.6);
+    /* --- DARK THEME (Aurora Glass) --- */
+    --bg-main: #020617;
+    /* Slate 950 */
+    --bg-glass: rgba(15, 23, 42, 0.4);
     --bg-glass-light: rgba(255, 255, 255, 0.03);
-    --border-glass: rgba(255, 255, 255, 0.1);
-    --text-main: #f1f5f9;
+    --bg-glass-heavy: rgba(15, 23, 42, 0.6);
+
+    --border-glass: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.15);
+
+    --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    --primary-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
-    --text-gradient: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-    --grid-line: rgba(255, 255, 255, 0.03);
-    --card-bg: rgba(255, 255, 255, 0.02);
-    --nav-btn-bg: rgba(255, 255, 255, 0.08);
-    --blob-opacity: 0.4;
-    --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    --blur-strength: 20px;
+
+    /* Gradients */
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    /* Indigo -> Violet -> Fuchsia */
+    --text-gradient: linear-gradient(to right, #e2e8f0, #ffffff);
+
+    /* AURORA NEBULA BACKGROUND (Restored) */
+    --aurora-gradient: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 98% 1%, rgba(217, 70, 239, 0.15) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(56, 189, 248, 0.15) 0px, transparent 50%);
+
+    --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15);
+
+    --blur-strength: 16px;
+    --anim-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme="light"] {
-    --bg-main: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.85);
-    --bg-glass-light: rgba(0, 0, 0, 0.05);
-    --border-glass: rgba(0, 0, 0, 0.1);
+    --bg-main: #f8fafc;
+    /* Slate 50 */
+    --bg-glass: rgba(255, 255, 255, 0.65);
+    --bg-glass-light: rgba(241, 245, 249, 0.4);
+    --bg-glass-heavy: rgba(255, 255, 255, 0.95);
+
+    --border-glass: rgba(148, 163, 184, 0.2);
+    /* Stronger border for visibility */
+    --border-light: rgba(148, 163, 184, 0.1);
+
     --text-main: #0f172a;
-    --text-muted: #475569;
-    --text-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    --grid-line: rgba(0, 0, 0, 0.05);
-    --card-bg: rgba(0, 0, 0, 0.03);
-    --nav-btn-bg: rgba(0, 0, 0, 0.05);
-    --blob-opacity: 0.2;
-    --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    /* Slate 900 */
+    --text-muted: #64748b;
+
+    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    /* Stronger Indigo/Violet */
+    --text-gradient: linear-gradient(to right, #1e293b, #4f46e5);
+    /* Dark to Indigo */
+
+    /* DAYLIGHT AURORA GRADIENT FLOW */
+    --aurora-gradient: linear-gradient(-45deg, #e0f2fe, #f3e8ff, #fae8ff, #f0f9ff);
+
+    --shadow-card: 0 10px 40px -10px rgba(100, 116, 139, 0.15);
+    --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.25);
+}
+
+/* Theme Selector Buttons */
+.theme-selector {
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.theme-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.theme-btn.active {
+    background: var(--bg-glass-heavy);
+    color: var(--text-main);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
 }
 
 * {
@@ -47,14 +105,57 @@ body {
     height: 100vh;
     width: 100vw;
     overflow: hidden;
+    position: relative;
+    /* Animated Gradient Flow */
+    background-image: var(--aurora-gradient);
+    background-attachment: fixed;
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+
+    /* Flex Centering */
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    background-image:
-        linear-gradient(var(--grid-line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 50px 50px;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -78,62 +179,67 @@ body {
 
 .glass-input {
     width: 100%;
-    padding: 14px 18px;
+    padding: 16px 20px;
     background: var(--bg-glass-light);
     border: 1px solid var(--border-glass);
-    border-radius: 12px;
+    border-radius: 16px;
     color: var(--text-main);
     font-size: 1rem;
     outline: none;
-    transition: 0.3s;
+    transition: var(--anim-speed);
 }
 
 .glass-input:focus {
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.05);
+    border-color: rgba(139, 92, 246, 0.5);
+    /* Violet glow */
+    background: rgba(139, 92, 246, 0.05);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
 }
 
 .btn-primary {
     background: var(--primary-gradient);
     color: white;
-    padding: 10px 20px;
-    border-radius: 12px;
+    padding: 12px 24px;
+    border-radius: 14px;
     border: none;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
+    transition: var(--anim-speed);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
 }
 
 /* =========================================
-   7. MODAL STYLES (SHARED)
+   MODAL STYLES
    ========================================= */
 .glass-card {
-    background: var(--bg-main);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(24px);
     border: 1px solid var(--border-glass);
-    padding: 30px;
-    border-radius: 20px;
+    padding: 40px;
+    border-radius: 24px;
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     text-align: center;
     box-shadow: var(--shadow-card);
+    animation: fadeIn 0.4s ease-out;
 }
 
-/* --- TOGGLE SWITCH STYLES --- */
+/* Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
     width: 50px;
-    height: 24px;
+    height: 26px;
 }
 
 .switch input {
@@ -149,7 +255,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #4b5563;
+    background-color: rgba(255, 255, 255, 0.1);
     transition: .4s;
     border-radius: 34px;
 }
@@ -159,17 +265,17 @@ body {
     content: "";
     height: 18px;
     width: 18px;
-    left: 3px;
-    bottom: 3px;
+    left: 4px;
+    bottom: 4px;
     background-color: white;
     transition: .4s;
     border-radius: 50%;
 }
 
 input:checked+.slider {
-    background-color: #3b82f6;
+    background-color: #8b5cf6;
 }
 
 input:checked+.slider:before {
-    transform: translateX(26px);
+    transform: translateX(24px);
 }

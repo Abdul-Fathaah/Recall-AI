@@ -5,25 +5,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - RecallAI</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.1">
-    <link rel="stylesheet" href="{% static 'css/auth.css' %}?v=1.1">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3.0">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}?v=3.0">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="{% static 'js/theme.js' %}?v=1.1"></script>
+    <script src="{% static 'js/theme.js' %}?v=3.0"></script>
 </head>
 
 <body class="auth-body">
 
     <div class="split-container">
         <div class="info-side">
-            <div class="blob blob-1"></div>
-            <div class="blob blob-2"></div>
+            <!-- Blobs removed for cleaner Aurora Glass look -->
             <a href="{% url 'landing' %}" style="text-decoration: none;">
                 <h1 class="text-gradient logo">RecallAI</h1>
             </a>
 
-            <div style="z-index: 1;">
+            <div class="quote-card">
                 <div id="quote-text" class="quote-text">"AI will not replace you. A person using AI will."</div>
-                <div id="quote-author" style="color: var(--text-muted); text-transform: uppercase; font-size: 0.9rem;">—
+                <div id="quote-author"
+                    style="color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; font-weight: 600; letter-spacing: 1px;">
+                    —
                     Industry Saying
                 </div>
             </div>

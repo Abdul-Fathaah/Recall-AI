@@ -66,37 +66,46 @@ def home(request):
 
 @login_required
 def upload_api(request):
+    """
+    Optimized upload handler:
+    1. Saves all files first.
+    2. Runs ONE bulk ingestion process (much faster).
+    """
     if request.method == 'POST':
         session_id = request.POST.get('session_id')
         
-        # 1. Create/Get Session Logic (Keep your existing logic here)
+        # 1. Create/Get Session Logic
         if not session_id or session_id == 'null':
             new_session = ChatSession.objects.create(user=request.user, title="New Uploaded Chat")
             session_id = new_session.id
         session = get_object_or_404(ChatSession, id=session_id, user=request.user)
         
-        # 2. Use the Form for Validation
+        # 2. Save Files & Collect Paths
         files = request.FILES.getlist('files')
         results = []
+        file_paths = []
         
         for f in files:
-            # Create a form instance with the file data
             form = DocumentForm(data={'file': f}, files={'file': f})
-            
             if form.is_valid():
-                # Save the file securely
                 doc = form.save(commit=False)
                 doc.name = f.name
                 doc.size = f"{f.size/1024:.2f} KB"
                 doc.save()
-                
-                success = process_file(doc.file.path, session.id)
-                status_text = 'Indexed' if success else 'Failed (OCR/Empty)'
-                results.append({'name': f.name, 'status': status_text})
+                file_paths.append(doc.file.path)
+                results.append({'name': f.name, 'status': 'Uploaded'})
             else:
-                # Handle Validation Error
                 results.append({'name': f.name, 'status': 'Invalid Type'})
-            
+        
+        # 3. Bulk Process (The Speed Boost)
+        from .rag_utils import process_files_bulk
+        if file_paths:
+            success = process_files_bulk(file_paths, session.id)
+            final_status = 'Indexed' if success else 'Index Failed'
+            # Update local status for the UI
+            for res in results:
+                if res['status'] == 'Uploaded': res['status'] = final_status
+
         # Add system messages
         file_names = ", ".join([f.name for f in files])
         ChatMessage.objects.create(session=session, is_user=True, text=f"Uploaded files: {file_names}")
@@ -108,48 +117,64 @@ def upload_api(request):
 @login_required
 @never_cache
 def chat_api(request):
+    """
+    Streaming Chat API:
+    Returns a StreamingHttpResponse to enable 'line-by-line' generation.
+    """
     if request.method == "POST":
         user_msg = request.POST.get('message', '').strip()
         session_id = request.POST.get('session_id')
         
-        # Validation: Empty Message
         if not user_msg:
             return JsonResponse({'error': 'Message cannot be empty'}, status=400)
         
-        # Validation: Message Length (Prevent DoS with massive text)
-        if len(user_msg) > 5000:
-            return JsonResponse({'error': 'Message too long (Max 5000 chars)'}, status=400)
-
-        is_new = False
+        # Create Session if needed
         if not session_id or session_id == 'null':
             session = ChatSession.objects.create(user=request.user, title=user_msg[:30])
-            is_new = True
+            session_id = session.id
+            is_new_session = True
         else:
-            # Validation: Ensure user owns the session
-            try:
-                session = ChatSession.objects.get(id=session_id, user=request.user)
-            except ChatSession.DoesNotExist:
-                 return JsonResponse({'error': 'Unauthorized access to session'}, status=403)
+            session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+            is_new_session = False
             
+        # Save User Message
         ChatMessage.objects.create(session=session, is_user=True, text=user_msg)
         
-        # Get AI Response
-        try:
-            bot_response = get_answer(user_msg, session.id)
-        except Exception as e:
-            bot_response = "I encountered an error processing your request."
+        # Generator for Streaming
+        def event_stream():
+            full_response = ""
+            try:
+                # Stream chunks from RAG/LLM
+                for chunk in get_answer(user_msg, session.id):
+                    full_response += chunk
+                    # Yield chunk to client
+                    yield chunk
+                
+                # After stream finishes, save the full response
+                ChatMessage.objects.create(session=session, is_user=False, text=full_response)
+                
+                # Update title if new session
+                if is_new_session:
+                    new_title =  generate_chat_title(user_msg, full_response)
+                    session.title = new_title
+                    session.save()
+                    
+            except Exception as e:
+                err = f"Error: {str(e)}"
+                ChatMessage.objects.create(session=session, is_user=False, text=err)
+                yield err
+
+        # Return Streaming Response
+        from django.http import StreamingHttpResponse
+        response = StreamingHttpResponse(event_stream(), content_type='text/plain')
         
-        ChatMessage.objects.create(session=session, is_user=False, text=bot_response)
-        
-        if is_new:
-            session.title = generate_chat_title(user_msg, bot_response)
-            session.save()
-        
-        return JsonResponse({
-            'response': bot_response, 
-            'session_id': session.id, 
-            'session_title': session.title
-        })
+        # Send Metadata in Headers
+        response['X-Session-ID'] = str(session.id)
+        if is_new_session:
+            response['X-Session-Title'] = session.title  # Initial title might change after stream, but this is immediate
+            
+        return response
+
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 @login_required

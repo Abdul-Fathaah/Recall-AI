@@ -1,22 +1,27 @@
 .split-container {
     display: flex;
-    width: 90%;
-    max-width: 1000px;
-    height: 80vh;
-    max-height: 600px;
-    background: var(--bg-glass);
+    width: 85%;
+    max-width: 900px;
+    height: auto;
+    min-height: 550px;
+    background: rgba(15, 23, 42, 0.5);
+    /* Heavier glass for auth */
     backdrop-filter: blur(var(--blur-strength));
+    -webkit-backdrop-filter: blur(var(--blur-strength));
     border: 1px solid var(--border-glass);
     border-radius: 24px;
     overflow: hidden;
     box-shadow: var(--shadow-card);
     margin: auto;
+    position: relative;
+    z-index: 10;
 }
 
 .info-side {
     flex: 1;
-    padding: 40px;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.05));
+    padding: 50px;
+    background: var(--bg-glass-light);
+    /* Ensure theme consistency */
     border-right: 1px solid var(--border-glass);
     display: flex;
     flex-direction: column;
@@ -25,13 +30,39 @@
     overflow: hidden;
 }
 
+.quote-card {
+    background: var(--bg-glass-heavy);
+    border: 1px solid var(--border-glass);
+    padding: 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease;
+}
+
+.quote-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.quote-text {
+    font-size: 1.3rem;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--text-main);
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
 .form-side {
     flex: 1;
     padding: 50px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: var(--bg-glass-light);
+    background: transparent;
     overflow-y: auto;
 }
 

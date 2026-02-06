@@ -1,5 +1,6 @@
 .landing-body {
-    overflow-y: auto;
+    overflow-y: scroll;
+    /* Force scrollbar to avoid layout shift */
     display: block;
 }
 
@@ -7,6 +8,8 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px;
+    position: relative;
+    z-index: 10;
 }
 
 .nav {
@@ -53,6 +56,7 @@
     font-size: 1.2rem;
     max-width: 600px;
     margin: 0 auto 40px;
+    line-height: 1.6;
 }
 
 .features-grid {
@@ -63,16 +67,21 @@
 }
 
 .feature-card {
-    background: var(--card-bg);
+    background: var(--bg-glass-heavy);
+    /* Use heavy glass for better contrast on cards */
+    backdrop-filter: blur(10px);
     border: 1px solid var(--border-glass);
     padding: 30px;
     border-radius: 20px;
     transition: 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .feature-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(59, 130, 246, 0.3);
+    border-color: rgba(139, 92, 246, 0.4);
+    /* Violet glow */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .feature-card h3 {
@@ -105,4 +114,11 @@
     border-radius: 50px;
     color: var(--text-muted);
     font-size: 0.9rem;
+    transition: 0.2s;
+}
+
+.tech-badge:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    border-color: white;
 }

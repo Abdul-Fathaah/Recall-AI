@@ -3,11 +3,32 @@
     document.documentElement.setAttribute('data-theme', savedTheme);
 })();
 
-function toggleTheme() {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+function setTheme(themeName) {
+    document.documentElement.setAttribute('data-theme', themeName);
+    localStorage.setItem('theme', themeName);
 
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
+    // Update active state of buttons if they exist
+    updateThemeButtons(themeName);
+}
+
+function updateThemeButtons(activeTheme) {
+    const buttons = document.querySelectorAll('.theme-btn');
+    buttons.forEach(btn => {
+        if (btn.dataset.theme === activeTheme) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// Init buttons on load
+document.addEventListener('DOMContentLoaded', () => {
+    updateThemeButtons(localStorage.getItem('theme') || 'dark');
+});
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
 }

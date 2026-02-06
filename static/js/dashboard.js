@@ -73,7 +73,7 @@ function scrollToBottom() {
 // --- FILE UPLOAD ---
 function uploadFiles(files) {
     if (!files.length) return;
-    document.getElementById('upload-progress').innerText = "⏳ Analyzing documents...";
+    document.getElementById('upload-progress').innerText = "⏳ Analyzing documents (Bulk Mode)...";
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) formData.append('files', files[i]);
     formData.append('session_id', currentSessionId);
@@ -94,13 +94,14 @@ function uploadFiles(files) {
 
 function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
 
-function sendMessage() {
+async function sendMessage() {
     const input = document.getElementById('user-input');
     const msg = input.value.trim();
     if (!msg) return;
 
     const box = document.getElementById('chat-box');
 
+    // 1. Add User Message
     const userDiv = document.createElement('div');
     userDiv.className = 'msg msg-user';
     userDiv.textContent = msg;
@@ -109,8 +110,11 @@ function sendMessage() {
     input.value = '';
     scrollToBottom();
 
-    const loadingId = 'loading-' + Date.now();
-    box.innerHTML += `<div id="${loadingId}" class="msg msg-bot" style="opacity:0.7;">Thinking...</div>`;
+    // 2. Prepare Bot Message Container
+    const botDiv = document.createElement('div');
+    botDiv.className = 'msg msg-bot';
+    botDiv.innerHTML = '<span class="typing-indicator">Thinking...</span>'; // You can style this class
+    box.appendChild(botDiv);
     scrollToBottom();
 
     const formData = new FormData();
@@ -118,23 +122,49 @@ function sendMessage() {
     formData.append('session_id', currentSessionId);
     formData.append('csrfmiddlewaretoken', getCsrfToken());
 
-    fetch('/api/chat/', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById(loadingId).remove();
-            if (currentSessionId === 'null' && data.session_id) {
-                currentSessionId = data.session_id;
-                window.history.replaceState({}, '', `?session_id=${data.session_id}`);
-                setTimeout(() => location.reload(), 2000);
-            }
+    try {
+        const response = await fetch('/api/chat/', { method: 'POST', body: formData });
 
+        // 3. Update Session Info from Headers
+        const newSessionId = response.headers.get('X-Session-ID');
+        const newTitle = response.headers.get('X-Session-Title');
+
+        if (currentSessionId === 'null' && newSessionId) {
+            currentSessionId = newSessionId;
+            window.history.replaceState({}, '', `?session_id=${newSessionId}`);
+            // If we got a title, update the UI immediately (optional, or wait for reload)
+            if (newTitle) {
+                document.getElementById('chat-title').innerText = newTitle;
+            }
+        }
+
+        if (!response.body) return;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let fullText = "";
+
+        // 4. Stream Loop
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            fullText += chunk;
+
+            // Render Markdown on the fly
             if (window.marked && window.DOMPurify) {
-                const cleanHtml = DOMPurify.sanitize(marked.parse(data.response));
-                box.innerHTML += `<div class="msg msg-bot">${cleanHtml}</div>`;
+                // DOMPurify might be heavy to run every chunk, but safe. 
+                // For smoother typing, maybe run it less often or on end? 
+                // For now, let's run it.
+                botDiv.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
             } else {
-                box.innerHTML += `<div class="msg msg-bot">${data.response}</div>`;
+                botDiv.innerText = fullText;
             }
-
             scrollToBottom();
-        });
+        }
+
+    } catch (error) {
+        console.error("Stream Error:", error);
+        botDiv.innerText += "\n[Connection Error]";
+    }
 }

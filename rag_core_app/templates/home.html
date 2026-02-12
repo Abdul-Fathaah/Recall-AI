@@ -15,6 +15,8 @@
 </head>
 
 <body>
+    <div id="urls" data-upload="{% url 'upload_api' %}" data-chat="{% url 'chat_api' %}" style="display:none;"></div>
+
     <div style="display:none;">
         <form id="csrf-form">{% csrf_token %}</form>
     </div>
@@ -111,7 +113,7 @@
             </div>
             {% else %}
             <div class="chat-header">
-                <div></div> <!-- Empty div for flex spacing if needed, or remove -->
+                <div></div>
             </div>
             {% endif %}
 
@@ -131,14 +133,14 @@
 
                 {% if current_session %}
                 {% for msg in current_session.messages.all %}
-                {% if "Uploaded files:" in msg.text %}
+                {% if "Uploaded files:" in msg.text or "Uploaded" in msg.text %}
                 <div class="msg-file">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                         </path>
                     </svg>
-                    <span>{{ msg.text|slice:"15:" }}</span>
+                    <span>{{ msg.text }}</span>
                 </div>
                 {% else %}
                 <div class="msg {{ msg.is_user|yesno:'msg-user,msg-bot' }}">
@@ -150,10 +152,20 @@
             </div>
 
             <div id="upload-progress"
-                style="position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); color: #a5b4fc; font-size: 0.9rem; font-weight: 500; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">
+                style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); color: #a5b4fc; font-size: 0.9rem; font-weight: 500; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; display: none;">
             </div>
 
             <div class="input-zone">
+                <div class="url-input-container"
+                    style="max-width: 800px; margin: 0 auto 10px auto; display: flex; gap: 10px; padding: 0 10px;">
+                    <input type="text" id="urlInput" placeholder="Paste a URL (Wikipedia, Image, etc)..."
+                        style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: var(--text-main); backdrop-filter: blur(5px);">
+                    <button onclick="uploadUrl()" class="action-btn"
+                        style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 5px 15px; border-radius: 8px;">
+                        Add URL
+                    </button>
+                </div>
+
                 <div class="input-wrapper">
                     <label class="icon-btn" title="Upload File">
                         <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +191,6 @@
         </main>
     </div>
 
-    <!-- SETTINGS MODAL -->
     <div id="settingsModal"
         style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
         <div class="glass-card">
@@ -234,7 +245,6 @@
         </div>
     </div>
 
-    <!-- RENAME MODAL -->
     <div id="renameModal"
         style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
         <div class="glass-card">
@@ -252,7 +262,6 @@
         </div>
     </div>
 
-    <!-- LOGOUT MODAL -->
     <div id="logoutConfirmModal"
         style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
         <div class="glass-card">
@@ -270,6 +279,54 @@
 
     <script>
         var currentSessionId = "{{ current_session.id|default:'null' }}";
+
+        // [NEW] Function to handle URL Uploads
+        async function uploadUrl() {
+            const url = document.getElementById('urlInput').value.trim();
+            const uploadUrl = document.getElementById('urls').dataset.upload;
+            const statusDiv = document.getElementById('upload-progress');
+
+            if (!url) {
+                alert("Please enter a valid URL.");
+                return;
+            }
+
+            statusDiv.style.display = 'block';
+            statusDiv.innerText = "Scanning URL...";
+
+            const formData = new FormData();
+            formData.append('url', url);
+            formData.append('session_id', currentSessionId);
+
+            try {
+                const response = await fetch(uploadUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    statusDiv.innerText = "URL Indexed!";
+                    // Set session ID if this was a new chat
+                    if (data.session_id && currentSessionId === 'null') {
+                        currentSessionId = data.session_id;
+                        // Reload to show the new session in history
+                        window.location.href = `?session_id=${data.session_id}`;
+                    } else {
+                        // Just reload to see the "Uploaded..." message
+                        location.reload();
+                    }
+                } else {
+                    statusDiv.innerText = "Error: " + data.message;
+                }
+            } catch (error) {
+                console.error("Upload failed:", error);
+                statusDiv.innerText = "Network Error";
+            }
+
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+            document.getElementById('urlInput').value = "";
+        }
     </script>
     <script src="{% static 'js/dashboard.js' %}?v=1.2"></script>
 </body>

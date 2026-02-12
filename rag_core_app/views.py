@@ -3,9 +3,9 @@ from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseForbidden
-from django.core.exceptions import ValidationError
-from .rag_utils import get_answer, process_file, clear_data, generate_chat_title
+from django.http import JsonResponse, StreamingHttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from .rag_utils import get_answer, process_files_bulk, clear_data, generate_chat_title
 from .forms import SignUpForm, UserUpdateForm, UserLoginForm, DocumentForm
 from .models import Document, ChatSession, ChatMessage
 
@@ -19,8 +19,8 @@ def landing(request):
     return render(request, 'landing.html')
 
 def register(request):
-    #if request.user.is_authenticated:
-    #    return redirect('home')
+    if request.user.is_authenticated:
+        return redirect('home')
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -31,8 +31,8 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 def user_login(request):
-    #if request.user.is_authenticated:
-    #    return redirect('home')
+    if request.user.is_authenticated:
+        return redirect('home')
     if request.method == "POST":
         form = UserLoginForm(request, data=request.POST)
         if form.is_valid():
@@ -69,7 +69,8 @@ def upload_api(request):
     """
     Optimized upload handler:
     1. Saves all files first.
-    2. Runs ONE bulk ingestion process (much faster).
+    2. Collects URLs.
+    3. Runs ONE bulk ingestion process for everything.
     """
     if request.method == 'POST':
         session_id = request.POST.get('session_id')
@@ -78,40 +79,53 @@ def upload_api(request):
         if not session_id or session_id == 'null':
             new_session = ChatSession.objects.create(user=request.user, title="New Uploaded Chat")
             session_id = new_session.id
+        
         session = get_object_or_404(ChatSession, id=session_id, user=request.user)
         
-        # 2. Save Files & Collect Paths
-        files = request.FILES.getlist('files')
         results = []
-        file_paths = []
+        process_queue = [] # Stores both file paths and URLs
         
-        for f in files:
-            form = DocumentForm(data={'file': f}, files={'file': f})
-            if form.is_valid():
-                doc = form.save(commit=False)
-                doc.name = f.name
-                doc.size = f"{f.size/1024:.2f} KB"
-                doc.save()
-                file_paths.append(doc.file.path)
-                results.append({'name': f.name, 'status': 'Uploaded'})
-            else:
-                results.append({'name': f.name, 'status': 'Invalid Type'})
+        # A. Handle File Uploads
+        files = request.FILES.getlist('files')
+        if files:
+            for f in files:
+                form = DocumentForm(data={'file': f}, files={'file': f})
+                if form.is_valid():
+                    doc = form.save(commit=False)
+                    doc.name = f.name
+                    doc.size = f"{f.size/1024:.2f} KB"
+                    doc.save()
+                    process_queue.append(doc.file.path)
+                    results.append({'name': f.name, 'status': 'Uploaded'})
+                else:
+                    results.append({'name': f.name, 'status': 'Invalid Type'})
+
+        # B. Handle URL Input (New Feature)
+        input_url = request.POST.get('url')
+        if input_url:
+            print(f"🔗 Processing URL: {input_url}")
+            process_queue.append(input_url)
+            results.append({'name': input_url, 'status': 'URL Queued'})
         
-        # 3. Bulk Process (The Speed Boost)
-        from .rag_utils import process_files_bulk
-        if file_paths:
-            success = process_files_bulk(file_paths, session.id)
+        # 3. Bulk Process (Files + URLs together)
+        if process_queue:
+            success = process_files_bulk(process_queue, session.id)
             final_status = 'Indexed' if success else 'Index Failed'
+            
             # Update local status for the UI
             for res in results:
-                if res['status'] == 'Uploaded': res['status'] = final_status
+                if res['status'] in ['Uploaded', 'URL Queued']: 
+                    res['status'] = final_status
 
-        # Add system messages
-        file_names = ", ".join([f.name for f in files])
-        ChatMessage.objects.create(session=session, is_user=True, text=f"Uploaded files: {file_names}")
-        ChatMessage.objects.create(session=session, is_user=False, text="I have analyzed these documents. Ask me anything!")
+            # Add system message
+            source_count = len(process_queue)
+            ChatMessage.objects.create(session=session, is_user=True, text=f"Uploaded {source_count} sources (Files/URLs).")
+            ChatMessage.objects.create(session=session, is_user=False, text="I have analyzed these sources. Ask me anything!")
 
-        return JsonResponse({'status': 'success', 'files': results, 'session_id': session.id})
+            return JsonResponse({'status': 'success', 'files': results, 'session_id': session.id})
+        
+        return JsonResponse({'status': 'error', 'message': 'No files or URL provided'}, status=400)
+    
     return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
 @login_required
@@ -147,7 +161,6 @@ def chat_api(request):
                 # Stream chunks from RAG/LLM
                 for chunk in get_answer(user_msg, session.id):
                     full_response += chunk
-                    # Yield chunk to client
                     yield chunk
                 
                 # After stream finishes, save the full response
@@ -155,7 +168,7 @@ def chat_api(request):
                 
                 # Update title if new session
                 if is_new_session:
-                    new_title =  generate_chat_title(user_msg, full_response)
+                    new_title = generate_chat_title(user_msg, full_response)
                     session.title = new_title
                     session.save()
                     
@@ -165,13 +178,12 @@ def chat_api(request):
                 yield err
 
         # Return Streaming Response
-        from django.http import StreamingHttpResponse
         response = StreamingHttpResponse(event_stream(), content_type='text/plain')
         
-        # Send Metadata in Headers
+        # Send Metadata in Headers (Client can read these)
         response['X-Session-ID'] = str(session.id)
         if is_new_session:
-            response['X-Session-Title'] = session.title  # Initial title might change after stream, but this is immediate
+            response['X-Session-Title'] = session.title
             
         return response
 

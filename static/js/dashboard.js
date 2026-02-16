@@ -1,20 +1,14 @@
-/* static/js/dashboard.js */
-
-// === 1. GLOBAL VARIABLES & INIT ===
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const fileInput = document.getElementById('file-input');
-const urlInput = document.getElementById('urlInput'); // [NEW]
+const urlInput = document.getElementById('urlInput');
 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : "";
 
-// Fallback if not defined in template
 if (typeof currentSessionId === 'undefined') {
     var currentSessionId = 'null';
 }
 
-// Initial scroll to bottom
 document.addEventListener("DOMContentLoaded", function () {
-    // Render existing messages with Markdown
     document.querySelectorAll('.msg-bot').forEach(msg => {
         if (!msg.innerHTML.includes('<') && window.marked && window.DOMPurify) {
             const parsed = marked.parse(msg.innerHTML.trim());
@@ -24,27 +18,22 @@ document.addEventListener("DOMContentLoaded", function () {
     scrollToBottom();
 });
 
-// === 2. CHAT FUNCTIONALITY (STREAMING) ===
 async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
 
-    // A. Add User Message to UI
     appendMessage('user', message);
     userInput.value = '';
-    userInput.disabled = true; // Disable input while generating
+    userInput.disabled = true;
 
-    // B. Create Placeholder for Bot Response
     const botMessageDiv = appendMessage('bot', '<span class="typing-indicator">Thinking...</span>');
     const botContentDiv = botMessageDiv.querySelector('.msg-content');
 
     try {
-        // C. Send Request
         const chatUrl = document.getElementById('urls').dataset.chat;
         const formData = new FormData();
         formData.append('message', message);
         formData.append('session_id', currentSessionId);
-        // Important: Add CSRF Token for Django
         if (csrfToken) formData.append('csrfmiddlewaretoken', csrfToken);
 
         const response = await fetch(chatUrl, {
@@ -52,14 +41,12 @@ async function sendMessage() {
             body: formData
         });
 
-        // D. Handle Streaming Response
         if (!response.body) throw new Error("No response stream");
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullText = "";
 
-        // Clear placeholder
         botContentDiv.innerHTML = "";
 
         while (true) {
@@ -69,7 +56,6 @@ async function sendMessage() {
             const chunk = decoder.decode(value, { stream: true });
             fullText += chunk;
 
-            // Render Markdown
             if (window.marked && window.DOMPurify) {
                 botContentDiv.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
             } else {
@@ -79,16 +65,12 @@ async function sendMessage() {
             scrollToBottom();
         }
 
-        // E. Update Session Metadata (if new)
         const newSessionId = response.headers.get('X-Session-ID');
         const newTitle = response.headers.get('X-Session-Title');
 
         if (newSessionId && currentSessionId === 'null') {
             currentSessionId = newSessionId;
-            // Update URL without reloading
             window.history.pushState({}, '', `?session_id=${newSessionId}`);
-
-            // Update Chat Title in UI if present
             const titleEl = document.querySelector('.chat-title');
             if (titleEl && newTitle) titleEl.innerText = newTitle;
         }
@@ -103,7 +85,6 @@ async function sendMessage() {
     }
 }
 
-// === 3. FILE UPLOAD FUNCTIONALITY ===
 async function uploadFiles(files) {
     if (files.length === 0) return;
 
@@ -137,7 +118,6 @@ async function uploadFiles(files) {
     }
 }
 
-// === 4. [NEW] URL UPLOAD FUNCTIONALITY ===
 async function uploadUrl() {
     const url = document.getElementById('urlInput').value.trim();
     if (!url) return alert("Please enter a URL");
@@ -159,7 +139,7 @@ async function uploadUrl() {
 
         if (data.status === 'success') {
             statusDiv.innerText = "URL Indexed!";
-            document.getElementById('urlInput').value = ""; // Clear input
+            document.getElementById('urlInput').value = "";
             handleNewSession(data.session_id);
         } else {
             statusDiv.innerText = "Error: " + data.message;
@@ -172,14 +152,12 @@ async function uploadUrl() {
     setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
 }
 
-// === 5. UTILITIES ===
 function handleNewSession(sessionId) {
-    // If a new session was created (started from null), reload to show it
     if (sessionId && currentSessionId === 'null') {
         currentSessionId = sessionId;
         window.location.href = `?session_id=${sessionId}`;
     } else {
-        // Just reload to update the chat history/files list
+        location.reload();
         location.reload();
     }
 }
@@ -194,14 +172,17 @@ function appendMessage(sender, htmlContent) {
 }
 
 function scrollToBottom() {
-    if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+    if (!chatBox) return;
+
+    requestAnimationFrame(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
 }
 
 function handleEnter(event) {
     if (event.key === 'Enter') sendMessage();
 }
 
-// === 6. MODAL HANDLERS ===
 function openSettingsModal() {
     document.getElementById('settingsModal').style.display = 'flex';
 }
@@ -218,11 +199,21 @@ function openRenameModal(e, id, title) {
     modal.style.display = 'flex';
 }
 
-// Close modals on click outside
 window.onclick = function (e) {
     const modals = ['renameModal', 'logoutConfirmModal', 'settingsModal'];
     modals.forEach(id => {
         const modal = document.getElementById(id);
         if (e.target === modal) modal.style.display = 'none';
     });
+}
+
+function toggleUrlInput() {
+    const wrapper = document.getElementById('urlInputWrapper');
+    const input = document.getElementById('urlInput');
+
+    wrapper.classList.toggle('visible');
+
+    if (wrapper.classList.contains('visible')) {
+        input.focus();
+    }
 }

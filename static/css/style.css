@@ -106,13 +106,10 @@ body {
     width: 100vw;
     overflow: hidden;
     position: relative;
-    /* Animated Gradient Flow */
     background-image: var(--aurora-gradient);
     background-attachment: fixed;
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
-
-    /* Flex Centering */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -191,7 +188,6 @@ body {
 
 .glass-input:focus {
     border-color: rgba(139, 92, 246, 0.5);
-    /* Violet glow */
     background: rgba(139, 92, 246, 0.05);
     box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
 }

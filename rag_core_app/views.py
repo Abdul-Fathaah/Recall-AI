@@ -106,9 +106,16 @@ def upload_api(request):
         files = request.FILES.getlist('files')
         if files:
             for f in files:
+
+                # --- Size check FIRST, before any processing ---
                 if f.size > MAX_UPLOAD_SIZE:
-                    results.append({'name': f.name, 'status': 'Rejected: exceeds 10MB limit'})
-                    continue
+                    results.append({
+                        'name': f.name,
+                        'status': f'Rejected: file exceeds 10MB limit ({f.size / 1024 / 1024:.1f}MB)'
+                    })
+                    continue  # Skip to next file, do not process this one
+
+                # --- Type check via form ---
                 form = DocumentForm(data={'file': f}, files={'file': f})
                 if form.is_valid():
                     doc = form.save(commit=False)
@@ -145,6 +152,14 @@ def upload_api(request):
 
             return JsonResponse({'status': 'success', 'files': results, 'session_id': session.id})
         
+        # If we got here, files/URLs were provided but all were rejected
+        if results:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'All uploads were rejected. Check file types and sizes.',
+                'files': results
+            }, status=400)
+
         return JsonResponse({'status': 'error', 'message': 'No files or URL provided'}, status=400)
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
@@ -216,9 +231,21 @@ def chat_api(request):
 @login_required
 def delete_chat_session(request, session_id):
     if request.method == "POST":
-        # Secure delete: ensure session belongs to request.user
         session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+
+        # Delete uploaded files from disk before deleting the session
+        # (CASCADE handles DB rows, but not the actual files on disk)
+        for doc in session.documents.all():
+            if doc.file and os.path.exists(doc.file.path):
+                try:
+                    os.remove(doc.file.path)
+                except OSError as e:
+                    print(f"⚠️ Could not delete file {doc.file.path}: {e}")
+
+        # Remove FAISS index for this session
         clear_data(session.id)
+
+        # Delete session (CASCADE removes Document + ChatMessage rows)
         session.delete()
         return redirect('home')
     return redirect('home')

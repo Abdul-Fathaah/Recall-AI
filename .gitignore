@@ -1,18 +1,79 @@
-# Security - NEVER PUSH THESE
+# ============================================================
+# SECURITY — NEVER PUSH THESE
+# ============================================================
 .env
 .env.local
+.env.production
+.env.staging
 *.env
 
-# Python & Django Garbage
+# ============================================================
+# PYTHON & DJANGO
+# ============================================================
 *.pyc
+*.pyo
+*.pyd
 __pycache__/
-db.sqlite3
+*.py[cod]
+*$py.class
+
+# Virtual environments
 venv/
 env/
+.venv/
+ENV/
 
-# Large AI Data & User Uploads
+# Django
+db.sqlite3
+db.sqlite3-journal
+*.log
+local_settings.py
+
+# Migrations (optional — comment out if you want to commit migrations)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# ============================================================
+# AI DATA — LARGE BINARY FILES, NEVER COMMIT
+# ============================================================
 faiss_indexes/
-media/
+*.faiss
+*.pkl
 
-# Build Assets
+# ============================================================
+# USER UPLOADS — PRIVATE USER DATA
+# ============================================================
+media/
+uploads/
+
+# ============================================================
+# STATIC FILES — GENERATED, NOT SOURCE
+# ============================================================
 staticfiles/
+static_root/
+
+# ============================================================
+# IDE & OS JUNK
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================================
+# TESTING & COVERAGE
+# ============================================================
+.coverage
+htmlcov/
+.pytest_cache/
+*.cover
+
+# ============================================================
+# BUILD ARTIFACTS
+# ============================================================
+dist/
+build/
+*.egg-info/

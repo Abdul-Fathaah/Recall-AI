@@ -14,6 +14,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# === STARTUP SECURITY VALIDATION ===
+REQUIRED_ENV_VARS = [
+    'DJANGO_SECRET_KEY',
+    'GROQ_API_KEY',
+    'DB_PASSWORD',
+]
+
+missing = [var for var in REQUIRED_ENV_VARS if not os.getenv(var)]
+if missing:
+    raise EnvironmentError(
+        f"RECALL AI: Missing required environment variables: {', '.join(missing)}\n"
+        f"Check your .env file or environment configuration."
+    )
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

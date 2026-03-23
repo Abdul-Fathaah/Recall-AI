@@ -1,5 +1,16 @@
 # Recall AI - Personalized RAG Chatbot
 
+## ⚠️ Security Setup (Read Before Cloning)
+
+This project uses environment variables for all secrets. **Never commit your `.env` file.**
+
+1. Copy the template: `cp .env.example .env`
+2. Fill in your actual values in `.env`
+3. Generate a Django secret key: `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`
+4. Get a free Groq API key at: https://console.groq.com
+
+The `.env` file is already in `.gitignore`. If you have already committed secrets by mistake, rotate them immediately (new Groq key, new Django secret key, new DB password).
+
 **Recall AI** is a powerful, Django-based AI assistant that uses **Retrieval-Augmented Generation (RAG)** to allow users to upload documents (PDFs, text files, etc.) and chat with them intelligently. It features a modern **Liquid Glassmorphism UI**, persistent chat history, and session-based memory using **FAISS** and **Groq's Llama 3**.
 
 ## 🚀 Features

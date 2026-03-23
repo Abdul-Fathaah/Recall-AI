@@ -2,14 +2,21 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Document(models.Model):
+    session = models.ForeignKey(
+        'ChatSession',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='documents'
+    )
     title = models.CharField(max_length=100, blank=True)
-    file = models.FileField(upload_to='documents/')
+    file = models.FileField(upload_to='documents/%Y/%m/')
     name = models.CharField(max_length=255, null=True, blank=True)
     size = models.CharField(max_length=50, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.title or "Document"
+        return self.title or self.name or "Document"
 
 # === NEW TABLES FOR CHAT HISTORY ===
 class ChatSession(models.Model):
@@ -25,3 +32,8 @@ class ChatMessage(models.Model):
     is_user = models.BooleanField(default=True) # True=User, False=Bot
     text = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        role = "User" if self.is_user else "Bot"
+        preview = self.text[:60].replace('\n', ' ')
+        return f"[{role}] {preview}"

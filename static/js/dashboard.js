@@ -56,13 +56,36 @@ async function sendMessage() {
             const chunk = decoder.decode(value, { stream: true });
             fullText += chunk;
 
+            // Hide the meta tag during streaming
+            let displayText = fullText.replace(/__META__:.*/, '');
             if (window.marked && window.DOMPurify) {
-                botContentDiv.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
+                botContentDiv.innerHTML = DOMPurify.sanitize(marked.parse(displayText));
             } else {
-                botContentDiv.innerText = fullText;
+                botContentDiv.innerText = displayText;
             }
 
             scrollToBottom();
+        }
+
+        const metaMatch = fullText.match(/__META__:(\{.*?\})/);
+        if (metaMatch) {
+            try {
+                // Try parse with single quotes replaced to double quotes
+                const meta = JSON.parse(metaMatch[1].replace(/'/g, '"'));
+                fullText = fullText.replace(/__META__:.*/, '').trim();
+                currentSessionId = meta.session_id;
+                window.history.pushState({}, '', `?session_id=${meta.session_id}`);
+                const titleEl = document.querySelector('.chat-title');
+                if (titleEl && meta.title) titleEl.innerText = meta.title;
+                if (meta.title) location.reload();
+            } catch(e) { console.warn('Meta parse error', e); }
+        }
+
+        // Final render after strip
+        if (window.marked && window.DOMPurify) {
+            botContentDiv.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
+        } else {
+            botContentDiv.innerText = fullText;
         }
 
         const newSessionId = response.headers.get('X-Session-ID');

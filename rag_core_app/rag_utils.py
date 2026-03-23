@@ -34,10 +34,14 @@ EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 print("⏳ Loading Neural Core...")
 try:
     GLOBAL_EMBEDDINGS = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+    CHAT_LLM = ChatGroq(temperature=0.6, model_name="llama-3.1-8b-instant", streaming=True)
+    ROUTER_LLM = ChatGroq(temperature=0.0, model_name="llama-3.1-8b-instant")
     print("✅ Neural Core Online!")
 except Exception as e:
     print(f"❌ Core Failure: {e}")
     GLOBAL_EMBEDDINGS = None
+    CHAT_LLM = None
+    ROUTER_LLM = None
 
 def get_db_path(session_id):
     if not session_id: return None
@@ -102,6 +106,44 @@ def load_single_file(file_path):
         elif ext == ".txt": return TextLoader(file_path, encoding='utf-8').load()
         elif ext in [".docx", ".doc"]: return Docx2txtLoader(file_path).load()
         elif ext == ".csv": return CSVLoader(file_path).load()
+        elif ext == ".pptx":
+            try:
+                from pptx import Presentation
+                prs = Presentation(file_path)
+                slides_text = []
+                for i, slide in enumerate(prs.slides):
+                    slide_content = []
+                    for shape in slide.shapes:
+                        if hasattr(shape, "text") and shape.text.strip():
+                            slide_content.append(shape.text.strip())
+                    if slide_content:
+                        slides_text.append(f"--- Slide {i+1} ---\n" + "\n".join(slide_content))
+                full_text = "\n\n".join(slides_text)
+                if full_text.strip():
+                    return [Document(page_content=full_text, metadata={"source": file_path, "type": "pptx"})]
+                return []
+            except Exception as e:
+                print(f"⚠️ PPTX load error: {e}")
+                return []
+        
+        elif ext in [".xlsx", ".xls"]:
+            try:
+                import openpyxl
+                wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
+                all_rows = []
+                for ws in wb.worksheets:
+                    all_rows.append(f"--- Sheet: {ws.title} ---")
+                    for row in ws.iter_rows(values_only=True):
+                        cleaned = [str(cell) for cell in row if cell is not None]
+                        if cleaned:
+                            all_rows.append(" | ".join(cleaned))
+                full_text = "\n".join(all_rows)
+                if full_text.strip():
+                    return [Document(page_content=full_text, metadata={"source": file_path, "type": "xlsx"})]
+                return []
+            except Exception as e:
+                print(f"⚠️ XLSX load error: {e}")
+                return []
         else: return TextLoader(file_path, autodetect_encoding=True).load()
 
     except Exception as e:
@@ -140,7 +182,9 @@ def process_files_bulk(file_paths, session_id):
                 vector_store = FAISS.load_local(db_path, GLOBAL_EMBEDDINGS, allow_dangerous_deserialization=True)
                 vector_store.add_documents(docs)
                 vector_store.save_local(db_path)
-            except:
+            except Exception as e:
+                print(f"⚠️ WARNING: FAISS index load failed for session {session_id}: {e}")
+                print(f"⚠️ Rebuilding index from scratch — previously indexed content for this session is LOST.")
                 vector_store = FAISS.from_documents(docs, GLOBAL_EMBEDDINGS)
                 vector_store.save_local(db_path)
         else:
@@ -174,8 +218,8 @@ def get_answer(query, session_id):
     recent_history = ChatMessage.objects.filter(session_id=session_id).order_by('-timestamp')[:6]
     history_text = "\n".join([f"{'User' if msg.is_user else 'AI'}: {msg.text}" for msg in reversed(recent_history)])
 
-    chat_llm = ChatGroq(temperature=0.6, model_name="llama-3.1-8b-instant", streaming=True)
-    router_llm = ChatGroq(temperature=0.0, model_name="llama-3.1-8b-instant")
+    chat_llm = CHAT_LLM
+    router_llm = ROUTER_LLM
 
     # === STEP 0: INTENT CLASSIFICATION ===
     try:
@@ -208,29 +252,24 @@ def get_answer(query, session_id):
     # === PATH B: KNOWLEDGE QUERY ===
     context_text = ""
     source_type = "Knowledge Base"
+    use_web = False
     
     if db_path and os.path.exists(db_path) and GLOBAL_EMBEDDINGS:
         try:
             vector_store = FAISS.load_local(db_path, GLOBAL_EMBEDDINGS, allow_dangerous_deserialization=True)
-            retriever = vector_store.as_retriever(search_kwargs={"k": 5})
-            docs = retriever.invoke(query)
-            if docs:
+            docs_with_scores = vector_store.similarity_search_with_score(query, k=5)
+            if docs_with_scores:
+                top_score = docs_with_scores[0][1]
+                docs = [d for d, _ in docs_with_scores]
                 context_text = "\n\n".join([d.page_content for d in docs])
+                use_web = top_score > 0.85
+            else:
+                use_web = True
         except Exception as e:
             print(f"⚠️ Retrieval error: {e}")
-
-    # Fallback to Web
-    use_web = False
-    if not context_text:
-        use_web = True
+            use_web = True
     else:
-        check_prompt = ChatPromptTemplate.from_template(
-            "Query: {q}. Context: {c}. Does context contain answer? Reply YES or NO."
-        )
-        try:
-            grade = (check_prompt | router_llm | StrOutputParser()).invoke({"q": query, "c": context_text[:2000]}).strip().upper()
-            if "NO" in grade: use_web = True
-        except: pass
+        use_web = True
 
     if use_web:
         print("⚠️ Docs irrelevant or empty. Switching to Web Search.")

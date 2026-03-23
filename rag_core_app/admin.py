@@ -3,8 +3,10 @@ from .models import Document, ChatSession, ChatMessage
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'size', 'uploaded_at', 'id')
-    search_fields = ('name',)
+    list_display = ('name', 'session', 'size', 'uploaded_at')
+    list_filter = ('session__user',)
+    search_fields = ('name', 'session__title', 'session__user__username')
+    readonly_fields = ('uploaded_at',)
 
 class ChatMessageInline(admin.TabularInline):
     model = ChatMessage

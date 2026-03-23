@@ -287,54 +287,6 @@
 
     <script>
         var currentSessionId = "{{ current_session.id|default:'null' }}";
-
-        // [NEW] Function to handle URL Uploads
-        async function uploadUrl() {
-            const url = document.getElementById('urlInput').value.trim();
-            const uploadUrl = document.getElementById('urls').dataset.upload;
-            const statusDiv = document.getElementById('upload-progress');
-
-            if (!url) {
-                alert("Please enter a valid URL.");
-                return;
-            }
-
-            statusDiv.style.display = 'block';
-            statusDiv.innerText = "Scanning URL...";
-
-            const formData = new FormData();
-            formData.append('url', url);
-            formData.append('session_id', currentSessionId);
-
-            try {
-                const response = await fetch(uploadUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-
-                if (data.status === 'success') {
-                    statusDiv.innerText = "URL Indexed!";
-                    // Set session ID if this was a new chat
-                    if (data.session_id && currentSessionId === 'null') {
-                        currentSessionId = data.session_id;
-                        // Reload to show the new session in history
-                        window.location.href = `?session_id=${data.session_id}`;
-                    } else {
-                        // Just reload to see the "Uploaded..." message
-                        location.reload();
-                    }
-                } else {
-                    statusDiv.innerText = "Error: " + data.message;
-                }
-            } catch (error) {
-                console.error("Upload failed:", error);
-                statusDiv.innerText = "Network Error";
-            }
-
-            setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
-            document.getElementById('urlInput').value = "";
-        }
     </script>
     <script src="{% static 'js/dashboard.js' %}?v=1.2"></script>
 </body>

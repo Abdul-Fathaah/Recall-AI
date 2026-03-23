@@ -5,6 +5,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
 from .rag_utils import get_answer, process_files_bulk, clear_data, generate_chat_title
 from .forms import SignUpForm, UserUpdateForm, UserLoginForm, DocumentForm
 from .models import Document, ChatSession, ChatMessage
@@ -48,6 +49,22 @@ def user_logout(request):
 
 # === SECURE APP VIEWS ===
 
+def rate_limit_user(max_calls=15, period=60):
+    def decorator(view_func):
+        def wrapped_view(request, *args, **kwargs):
+            if request.user.is_authenticated:
+                key = f"rate_limit_chat_{request.user.id}"
+                calls = cache.get(key, 0)
+                if calls >= max_calls:
+                    return JsonResponse(
+                        {'error': f'Rate limit exceeded. Max {max_calls} messages per minute.'},
+                        status=429
+                    )
+                cache.set(key, calls + 1, period)
+            return view_func(request, *args, **kwargs)
+        return wrapped_view
+    return decorator
+
 @login_required
 @never_cache
 def home(request):
@@ -89,11 +106,15 @@ def upload_api(request):
         files = request.FILES.getlist('files')
         if files:
             for f in files:
+                if f.size > MAX_UPLOAD_SIZE:
+                    results.append({'name': f.name, 'status': 'Rejected: exceeds 10MB limit'})
+                    continue
                 form = DocumentForm(data={'file': f}, files={'file': f})
                 if form.is_valid():
                     doc = form.save(commit=False)
                     doc.name = f.name
                     doc.size = f"{f.size/1024:.2f} KB"
+                    doc.session = session
                     doc.save()
                     process_queue.append(doc.file.path)
                     results.append({'name': f.name, 'status': 'Uploaded'})
@@ -130,6 +151,7 @@ def upload_api(request):
 
 @login_required
 @never_cache
+@rate_limit_user(max_calls=15, period=60)
 def chat_api(request):
     """
     Streaming Chat API:
@@ -168,9 +190,11 @@ def chat_api(request):
                 
                 # Update title if new session
                 if is_new_session:
-                    new_title = generate_chat_title(user_msg, full_response)
+                    new_title = generate_chat_title(user_msg, full_response[:300])
                     session.title = new_title
                     session.save()
+                    yield f"\\n__META__:{{'session_id':'{session.id}','title':'{new_title}'}}"
+                    
                     
             except Exception as e:
                 err = f"Error: {str(e)}"

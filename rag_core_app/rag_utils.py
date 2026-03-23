@@ -21,7 +21,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from .models import ChatMessage
-from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -161,7 +161,7 @@ def process_file(file_path, session_id):
 
 def perform_web_search(query):
     try:
-        search = DuckDuckGoSearchRun()
+        search = DuckDuckGoSearchResults(num_results=4)
         print(f"🌎 Searching Web: {query}")
         return search.run(query)
     except Exception as e:
@@ -180,7 +180,9 @@ def get_answer(query, session_id):
     # === STEP 0: INTENT CLASSIFICATION ===
     try:
         router_prompt = ChatPromptTemplate.from_template(
-            "Classify: '{question}'. Reply ONLY 'CHAT' (small talk) or 'QUERY' (info request)."
+            "Classify the following user input: '{question}'.\n"
+            "If the user is asking for ANY real-world facts, current events, knowledge, programming help, or specific information, reply ONLY with 'QUERY'.\n"
+            "If the user is ONLY making small talk, greeting you, or saying thanks, reply ONLY with 'CHAT'."
         )
         intent = (router_prompt | router_llm | StrOutputParser()).invoke({"question": query}).strip().upper()
     except:
@@ -246,10 +248,10 @@ def get_answer(query, session_id):
     User Question: {question}
     
     Instructions:
-    1. Answer accurately using the context.
-    2. If context is from Web, synthesize facts.
+    1. Answer accurately using the context provided.
+    2. If context is from Web, synthesize the facts and use the provided snippets to give a comprehensive answer, including Markdown links `[Source Name](URL)` to the sources at the end.
     3. If context is from Knowledge Base, cite documents.
-    4. Be helpful and professional.
+    4. Be helpful, professional, and detailed.
     """
     
     final_prompt = ChatPromptTemplate.from_template(system_prompt)

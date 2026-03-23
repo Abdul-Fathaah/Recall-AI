@@ -18,7 +18,7 @@ class ChatSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name or self.title or "Document"
+        return self.title or "New Chat"
 
 class ChatMessage(models.Model):
     session = models.ForeignKey(ChatSession, related_name='messages', on_delete=models.CASCADE)

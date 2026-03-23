@@ -158,7 +158,6 @@ function handleNewSession(sessionId) {
         window.location.href = `?session_id=${sessionId}`;
     } else {
         location.reload();
-        location.reload();
     }
 }
 
@@ -195,7 +194,7 @@ function openRenameModal(e, id, title) {
     e.stopPropagation();
     const modal = document.getElementById('renameModal');
     document.getElementById('newTitleInput').value = title;
-    document.getElementById('renameForm').action = `/chat/rename/${id}/`;
+    document.getElementById('renameForm').action = `/rename_chat/${id}/`;
     modal.style.display = 'flex';
 }
 

@@ -27,14 +27,14 @@ from langchain_core.output_parsers import StrOutputParser
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 # === GLOBAL MODEL LOADING ===
-print("⏳ Loading Neural Core...")
+print("[WAIT] Loading Neural Core...")
 try:
     GLOBAL_EMBEDDINGS = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
     CHAT_LLM = ChatGroq(temperature=0.6, model_name="llama-3.1-8b-instant", streaming=True)
     ROUTER_LLM = ChatGroq(temperature=0.0, model_name="llama-3.1-8b-instant")
-    print("✅ Neural Core Online!")
+    print("[OK] Neural Core Online!")
 except Exception as e:
-    print(f"❌ Core Failure: {e}")
+    print(f"[ERROR] Core Failure: {e}")
     GLOBAL_EMBEDDINGS = None
     CHAT_LLM = None
     ROUTER_LLM = None
@@ -58,11 +58,11 @@ def load_single_file(file_path):
     try:
         # --- CASE A: WEB URLS ---
         if file_path.startswith("http://") or file_path.startswith("https://"):
-            print(f"🌐 Analyzing URL: {file_path}")
+            print(f"[WEB] Analyzing URL: {file_path}")
             
             # Check if URL is an image
             if any(file_path.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp']):
-                print("📷 Remote Image Detected. Downloading & OCR...")
+                print("[IMAGE] Remote Image Detected. Downloading & OCR...")
                 try:
                     response = requests.get(file_path, headers=HEADERS, timeout=10)
                     image = Image.open(BytesIO(response.content))
@@ -71,7 +71,7 @@ def load_single_file(file_path):
                         return [Document(page_content=text, metadata={"source": file_path, "type": "image_url"})]
                     return []
                 except Exception as e:
-                    print(f"❌ Failed to process remote image: {e}")
+                    print(f"[ERROR] Failed to process remote image: {e}")
                     return []
             
             # Treat as Standard Website
@@ -79,7 +79,7 @@ def load_single_file(file_path):
                 loader = WebBaseLoader(file_path, header_template=HEADERS)
                 return loader.load()
             except Exception as e:
-                print(f"❌ Web Load Error: {e}")
+                print(f"[ERROR] Web Load Error: {e}")
                 return []
 
         # --- CASE B: LOCAL FILES ---
@@ -87,7 +87,7 @@ def load_single_file(file_path):
         
         # 1. Local Images
         if ext in ['.png', '.jpg', '.jpeg']:
-            print(f"📷 Local Image Detected: {file_path}")
+            print(f"[IMAGE] Local Image Detected: {file_path}")
             try:
                 text = pytesseract.image_to_string(Image.open(file_path))
                 if text.strip():
@@ -119,7 +119,7 @@ def load_single_file(file_path):
                     return [Document(page_content=full_text, metadata={"source": file_path, "type": "pptx"})]
                 return []
             except Exception as e:
-                print(f"⚠️ PPTX load error: {e}")
+                print(f"[WARN] PPTX load error: {e}")
                 return []
         
         elif ext in [".xlsx", ".xls"]:
@@ -138,12 +138,12 @@ def load_single_file(file_path):
                     return [Document(page_content=full_text, metadata={"source": file_path, "type": "xlsx"})]
                 return []
             except Exception as e:
-                print(f"⚠️ XLSX load error: {e}")
+                print(f"[WARN] XLSX load error: {e}")
                 return []
         else: return TextLoader(file_path, autodetect_encoding=True).load()
 
     except Exception as e:
-        print(f"⚠️ Failed to load {file_path}: {e}")
+        print(f"[WARN] Failed to load {file_path}: {e}")
         return []
 
 def process_files_bulk(file_paths, session_id):
@@ -179,8 +179,8 @@ def process_files_bulk(file_paths, session_id):
                 vector_store.add_documents(docs)
                 vector_store.save_local(db_path)
             except Exception as e:
-                print(f"⚠️ WARNING: FAISS index load failed for session {session_id}: {e}")
-                print(f"⚠️ Rebuilding index from scratch — previously indexed content for this session is LOST.")
+                print(f"[WARN] WARNING: FAISS index load failed for session {session_id}: {e}")
+                print(f"[WARN] Rebuilding index from scratch — previously indexed content for this session is LOST.")
                 vector_store = FAISS.from_documents(docs, GLOBAL_EMBEDDINGS)
                 vector_store.save_local(db_path)
         else:
@@ -188,7 +188,7 @@ def process_files_bulk(file_paths, session_id):
             vector_store.save_local(db_path)
         return True
     except Exception as e:
-        print(f"❌ Indexing Failed: {e}")
+        print(f"[ERROR] Indexing Failed: {e}")
         return False
 
 def process_file(file_path, session_id):
@@ -202,7 +202,7 @@ def process_file(file_path, session_id):
 def perform_web_search(query):
     try:
         search = DuckDuckGoSearchResults(num_results=4)
-        print(f"🌎 Searching Web: {query}")
+        print(f"[WEB_SEARCH] Searching Web: {query}")
         return search.run(query)
     except Exception as e:
         return f"Web search failed: {e}"
@@ -228,7 +228,7 @@ def get_answer(query, session_id):
     except:
         intent = "QUERY"
 
-    print(f"🧠 Intent Detected: {intent}")
+    print(f"[AI_ROUTER] Intent Detected: {intent}")
 
     # === PATH A: CASUAL CHAT ===
     if "CHAT" in intent:
@@ -262,13 +262,13 @@ def get_answer(query, session_id):
             else:
                 use_web = True
         except Exception as e:
-            print(f"⚠️ Retrieval error: {e}")
+            print(f"[WARN] Retrieval error: {e}")
             use_web = True
     else:
         use_web = True
 
     if use_web:
-        print("⚠️ Docs irrelevant or empty. Switching to Web Search.")
+        print("[WARN] Docs irrelevant or empty. Switching to Web Search.")
         source_type = "Web Search"
         context_text = perform_web_search(query)
 

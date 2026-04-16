@@ -131,7 +131,7 @@ def upload_api(request):
         # B. Handle URL Input (New Feature)
         input_url = request.POST.get('url')
         if input_url:
-            print(f"🔗 Processing URL: {input_url}")
+            print(f"[LINK] Processing URL: {input_url}")
             process_queue.append(input_url)
             results.append({'name': input_url, 'status': 'URL Queued'})
         
@@ -240,7 +240,7 @@ def delete_chat_session(request, session_id):
                 try:
                     os.remove(doc.file.path)
                 except OSError as e:
-                    print(f"⚠️ Could not delete file {doc.file.path}: {e}")
+                    print(f"[WARN] Could not delete file {doc.file.path}: {e}")
 
         # Remove FAISS index for this session
         clear_data(session.id)

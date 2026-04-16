@@ -21,7 +21,7 @@ REQUIRED_ENV_VARS = [
     'DB_PASSWORD',
 ]
 
-missing = [var for var in REQUIRED_ENV_VARS if not os.getenv(var)]
+missing = [var for var in REQUIRED_ENV_VARS if os.getenv(var) is None]
 if missing:
     raise EnvironmentError(
         f"RECALL AI: Missing required environment variables: {', '.join(missing)}\n"
@@ -39,11 +39,6 @@ CACHES = {
     }
 }
 
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -60,6 +55,12 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+
+# ============================================================
+# UPLOAD LIMITS
+# ============================================================
+DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
 
 
 # Application definition
@@ -113,10 +114,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME', 'ragbot'),
-        'HOST': '127.0.0.1',
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
         'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'PORT': '3306',
+        'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
 
@@ -132,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 #Default Language
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 

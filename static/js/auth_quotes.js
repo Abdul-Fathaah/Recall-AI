@@ -42,8 +42,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const randomIndex = Math.floor(Math.random() * quotes.length);
         const randomQuote = quotes[randomIndex];
 
-        // Apply the quote with a fade-in effect (if desired, or just text replacement)
-        quoteTextElement.textContent = `"${randomQuote.text}"`;
-        quoteAuthorElement.textContent = `— ${randomQuote.author}`;
+        // Apply the quote with a fade-in effect
+        quoteTextElement.style.opacity = 0;
+        quoteAuthorElement.style.opacity = 0;
+
+        setTimeout(() => {
+            quoteTextElement.textContent = `"${randomQuote.text}"`;
+            quoteAuthorElement.textContent = `— ${randomQuote.author}`;
+            
+            quoteTextElement.style.transition = 'opacity 0.8s ease-in-out';
+            quoteAuthorElement.style.transition = 'opacity 0.8s ease-in-out';
+            
+            quoteTextElement.style.opacity = 1;
+            quoteAuthorElement.style.opacity = 1;
+        }, 50);
     }
 });

@@ -14,7 +14,8 @@
     <script src="{% static 'js/theme.js' %}?v=3.0"></script>
 </head>
 
-<body>
+<body style="background-image: linear-gradient(var(--bg-backdrop-overlay), var(--bg-backdrop-overlay)), url('https://dummyimage.com/1920x1080/1e293b/a5b4fc.png?text=Dashboard+Background+(Update+Me)'); background-size: cover; background-position: center; background-attachment: fixed; animation: none;">
+    <!-- Replace url(...) with your actual image path: url('{% static "images/home-bg.png" %}') -->
     <div id="urls" data-upload="{% url 'upload_api' %}" data-chat="{% url 'chat_api' %}" style="display:none;"></div>
 
     <div style="display:none;">
@@ -119,13 +120,13 @@
 
             <div class="chat-messages no-scrollbar" id="chat-box">
                 {% if not current_session %}
-                <div
-                    style="text-align: center; margin-top: 15vh; opacity: 0.9; animation: float 6s ease-in-out infinite;">
+                <div style="text-align: center; margin-top: 10vh; opacity: 0.9; animation: float 6s ease-in-out infinite;">
+                    <img src="https://dummyimage.com/300x300/1e293b/a5b4fc.png?text=Assistance+Image" alt="AI Agent" style="border-radius: 50%; width: 120px; height: 120px; margin-bottom: 20px; box-shadow: var(--shadow-glow);">
+                    <!-- Replace src with your image path: src="{% static 'images/bot-avatar.png' %}" -->
                     <h1 class="text-gradient" style="font-size: 3rem; margin-bottom: 15px; letter-spacing: -1px;">
                         Hello, {{ user.first_name|default:user.username }}.
                     </h1>
-                    <p
-                        style="color: var(--text-muted); font-size: 1.2rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                    <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
                         I'm ready to assist. Upload a document or just start chatting.
                     </p>
                 </div>

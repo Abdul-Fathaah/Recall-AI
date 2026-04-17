@@ -65,7 +65,8 @@
     </style>
 </head>
 
-<body class="landing-body">
+<body class="landing-body" style="background-image: linear-gradient(var(--bg-backdrop-overlay), var(--bg-backdrop-overlay)), url('https://dummyimage.com/1920x1080/1e293b/a5b4fc.png?text=Landing+Background+(Update+Me)'); background-size: cover; background-attachment: fixed; background-position: center; animation: none;">
+    <!-- Replace url(...) with your actual image path: url('{% static "images/landing-bg.png" %}') -->
     <div class="landing-container">
         <div class="nav">
             <a href="{% url 'landing' %}" class="logo text-gradient"
@@ -126,11 +127,26 @@
             <h2 style="font-weight: 400; font-size: 2rem; color: var(--text-main);">Powered by Next-Gen Tech</h2>
 
             <div class="tech-grid">
-                <div class="tech-badge"><span>🐍</span> Python & Django</div>
-                <div class="tech-badge"><span>🦜</span> LangChain</div>
-                <div class="tech-badge"><span>⚡</span> Groq Llama 3</div>
-                <div class="tech-badge"><span>🔍</span> FAISS Vector DB</div>
-                <div class="tech-badge"><span>🗄️</span> MySQL</div>
+                <div class="tech-badge">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px; color: #a5b4fc;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Python & Django
+                </div>
+                <div class="tech-badge">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px; color: #a5b4fc;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    LangChain
+                </div>
+                <div class="tech-badge">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px; color: #a5b4fc;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    Groq Llama 3
+                </div>
+                <div class="tech-badge">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px; color: #a5b4fc;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    FAISS Vector DB
+                </div>
+                <div class="tech-badge">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px; color: #a5b4fc;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                    MySQL
+                </div>
             </div>
 
             <div class="repo-buttons">
@@ -147,17 +163,23 @@
 
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">📄</div>
+                <div class="feature-icon text-gradient" style="color: #a5b4fc;">
+                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
                 <h3>Deep Analysis</h3>
                 <p>Upload PDFs, DOCX, or text files. Our AI engine reads, comprehends, and indexes them instantly.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🧠</div>
+                <div class="feature-icon text-gradient" style="color: #a5b4fc;">
+                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
                 <h3>Vector Memory</h3>
                 <p>RecallAI retains context across your session, allowing for complex, multi-turn conversations.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🔒</div>
+                <div class="feature-icon text-gradient" style="color: #a5b4fc;">
+                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
                 <h3>Encrypted Context</h3>
                 <p>Your data is processed in isolated sessions with enterprise-grade security standards.</p>
             </div>

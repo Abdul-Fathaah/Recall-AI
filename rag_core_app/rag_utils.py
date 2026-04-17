@@ -1,3 +1,9 @@
+import sys
+if sys.stdout.encoding.lower() != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass  # In some environments reconfigure might not be available
 import os
 import shutil
 import pytesseract

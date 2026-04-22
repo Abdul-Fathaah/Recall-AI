@@ -4,8 +4,7 @@
     max-width: 900px;
     height: auto;
     min-height: 550px;
-    background: rgba(15, 23, 42, 0.5);
-    /* Heavier glass for auth */
+    background: var(--bg-modal);
     backdrop-filter: blur(var(--blur-strength));
     -webkit-backdrop-filter: blur(var(--blur-strength));
     border: 1px solid var(--border-glass);

@@ -15,7 +15,7 @@
 
     <div class="split-container">
         <div class="info-side">
-            <!-- Blobs removed for cleaner Aurora Glass look -->
+
 
             <a href="{% url 'landing' %}" class="logo text-gradient"
                 style="font-weight: 700; font-size: 1.8rem; text-decoration: none;">RecallAI</a>
@@ -50,7 +50,7 @@
                 <div style="margin-bottom: 15px;">
                     {{ field }}
                     {% if field.errors %}
-                    <div style="color: #ef4444; font-size: 0.8em; margin-top: 5px; margin-left: 5px;">
+                    <div style="color: var(--danger); font-size: 0.8em; margin-top: 5px; margin-left: 5px;">
                         {{ field.errors.0 }}
                     </div>
                     {% endif %}
@@ -62,7 +62,7 @@
 
             <p style="margin-top: 25px; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
                 Already have an account? <a href="{% url 'login' %}"
-                    style="color: #34d399; text-decoration: none; font-weight: 500;">Login</a>
+                    style="color: var(--text-link); text-decoration: none; font-weight: 500;">Login</a>
             </p>
         </div>
     </div>

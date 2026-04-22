@@ -15,8 +15,7 @@
 
     <div class="split-container">
         <div class="info-side">
-            <!-- Blobs removed for cleaner Aurora Glass look -->
-            <!-- Blobs removed for cleaner Aurora Glass look -->
+
             <a href="{% url 'landing' %}" style="text-decoration: none;">
                 <h1 class="text-gradient logo">RecallAI</h1>
             </a>
@@ -31,7 +30,7 @@
             </div>
             <script src="{% static 'js/auth_quotes.js' %}?v=1.0"></script>
 
-            <div style="color: rgba(255,255,255,0.3); font-size: 0.8rem; z-index: 1;">&copy; 2026 RecallAI</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem; z-index: 1;">© 2026 RecallAI</div>
         </div>
 
         <div class="form-side no-scrollbar" style="overflow-y: auto;">
@@ -52,7 +51,7 @@
             </form>
 
             <p style="margin-top: 25px; text-align: center; font-size: 0.9rem;">
-                New here? <a href="{% url 'register' %}" style="color: #60a5fa; text-decoration: none;">Create an
+                New here? <a href="{% url 'register' %}" style="color: var(--text-link); text-decoration: none; font-weight: 500;">Create an
                     account</a>
             </p>
         </div>

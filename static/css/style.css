@@ -2,9 +2,7 @@
    1. VARIABLES & THEME CONFIGURATION
    ========================================= */
 :root {
-    /* --- DARK THEME (Aurora Glass) --- */
     --bg-main: #020617;
-    /* Slate 950 */
     --bg-glass: rgba(15, 23, 42, 0.4);
     --bg-glass-light: rgba(255, 255, 255, 0.03);
     --bg-glass-heavy: rgba(15, 23, 42, 0.6);
@@ -13,23 +11,23 @@
     --border-light: rgba(255, 255, 255, 0.15);
 
     --bg-backdrop-overlay: rgba(15, 23, 42, 0.85);
+    --bg-modal: rgba(15, 23, 42, 0.85);
 
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
+    --text-link: #60a5fa;
     --danger: #ef4444;
 
-    /* Gradients */
     --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #8b5cf6 100%);
-    /* Cyan -> Indigo -> Violet */
     --text-gradient: linear-gradient(to right, #e2e8f0, #ffffff);
 
-    /* AURORA NEBULA BACKGROUND (Restored) */
     --aurora-gradient: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
         radial-gradient(at 98% 1%, rgba(217, 70, 239, 0.15) 0px, transparent 50%),
         radial-gradient(at 0% 100%, rgba(56, 189, 248, 0.15) 0px, transparent 50%);
 
     --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15);
+    --shadow-input: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 
     --blur-strength: 16px;
     --anim-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -37,38 +35,37 @@
 
 [data-theme="light"] {
     --bg-main: #f8fafc;
-    /* Slate 50 */
     --bg-glass: rgba(255, 255, 255, 0.65);
-    --bg-glass-light: rgba(241, 245, 249, 0.4);
+    --bg-glass-light: rgba(241, 245, 249, 0.6);
     --bg-glass-heavy: rgba(255, 255, 255, 0.95);
 
-    --border-glass: rgba(148, 163, 184, 0.2);
-    /* Stronger border for visibility */
-    --border-light: rgba(148, 163, 184, 0.1);
+    --border-glass: rgba(148, 163, 184, 0.25);
+    --border-light: rgba(148, 163, 184, 0.35);
 
     --bg-backdrop-overlay: rgba(248, 250, 252, 0.85);
+    --bg-modal: rgba(255, 255, 255, 0.95);
 
     --text-main: #0f172a;
-    /* Slate 900 */
     --text-muted: #64748b;
+    --text-link: #2563eb;
+    --danger: #dc2626;
 
     --primary-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
-    /* Sky Blue to Indigo */
     --text-gradient: linear-gradient(to right, #1e293b, #4f46e5);
-    /* Dark to Indigo */
 
-    /* DAYLIGHT AURORA GRADIENT FLOW */
     --aurora-gradient: linear-gradient(-45deg, #e0f2fe, #f3e8ff, #fae8ff, #f0f9ff);
 
-    --shadow-card: 0 10px 40px -10px rgba(100, 116, 139, 0.15);
-    --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.25);
+    --shadow-card: 0 10px 40px -10px rgba(100, 116, 139, 0.2);
+    --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.2);
+    --shadow-input: 0 10px 40px -10px rgba(100, 116, 139, 0.25);
 }
 
 /* Theme Selector Buttons */
 .theme-selector {
     display: flex;
     gap: 8px;
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--bg-glass-light);
+    border: 1px solid var(--border-glass);
     padding: 4px;
     border-radius: 12px;
 }
@@ -93,7 +90,7 @@
 }
 
 .theme-btn:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-glass-light);
     color: var(--text-main);
 }
 
@@ -121,53 +118,24 @@ body {
 }
 
 @keyframes gradientBG {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 @keyframes float {
-    0% {
-        transform: translateY(0px);
-    }
-
-    50% {
-        transform: translateY(-5px);
-    }
-
-    100% {
-        transform: translateY(0px);
-    }
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* =========================================
    2. UTILITY CLASSES
@@ -191,10 +159,20 @@ body {
     transition: var(--anim-speed);
 }
 
+.glass-input::placeholder {
+    color: var(--text-muted);
+}
+
 .glass-input:focus {
     border-color: rgba(139, 92, 246, 0.5);
     background: rgba(139, 92, 246, 0.05);
     box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+}
+
+[data-theme="light"] .glass-input:focus {
+    border-color: rgba(79, 70, 229, 0.4);
+    background: rgba(79, 70, 229, 0.04);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.08);
 }
 
 .btn-primary {
@@ -223,7 +201,7 @@ body {
    MODAL STYLES
    ========================================= */
 .glass-card {
-    background: rgba(15, 23, 42, 0.85);
+    background: var(--bg-modal);
     backdrop-filter: blur(24px);
     border: 1px solid var(--border-glass);
     padding: 40px;
@@ -243,20 +221,13 @@ body {
     height: 26px;
 }
 
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+.switch input { opacity: 0; width: 0; height: 0; }
 
 .slider {
     position: absolute;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.1);
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--border-glass);
     transition: .4s;
     border-radius: 34px;
 }
@@ -273,10 +244,5 @@ body {
     border-radius: 50%;
 }
 
-input:checked+.slider {
-    background-color: #8b5cf6;
-}
-
-input:checked+.slider:before {
-    transform: translateX(24px);
-}
+input:checked + .slider { background-color: #8b5cf6; }
+input:checked + .slider:before { transform: translateX(24px); }

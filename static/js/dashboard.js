@@ -1,19 +1,16 @@
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const fileInput = document.getElementById('file-input');
-const urlInput = document.getElementById('urlInput');
-const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : "";
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ?? '';
 
 if (typeof currentSessionId === 'undefined') {
     var currentSessionId = 'null';
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Render saved bot messages from DB (marked with data-markdown)
     document.querySelectorAll('[data-markdown="true"] .msg-content').forEach(el => {
         if (window.marked && window.DOMPurify) {
-            const parsed = marked.parse(el.textContent.trim());
-            el.innerHTML = DOMPurify.sanitize(parsed);
+            el.innerHTML = DOMPurify.sanitize(marked.parse(el.textContent.trim()));
         }
     });
     scrollToBottom();
@@ -37,11 +34,7 @@ async function sendMessage() {
         formData.append('session_id', currentSessionId);
         if (csrfToken) formData.append('csrfmiddlewaretoken', csrfToken);
 
-        const response = await fetch(chatUrl, {
-            method: 'POST',
-            body: formData
-        });
-
+        const response = await fetch(chatUrl, { method: 'POST', body: formData });
         if (!response.body) throw new Error("No response stream");
 
         const reader = response.body.getReader();
@@ -54,25 +47,21 @@ async function sendMessage() {
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            fullText += chunk;
+            fullText += decoder.decode(value, { stream: true });
+            const displayText = fullText.replace(/__META__:.*/, '');
 
-            // Hide the meta tag during streaming
-            let displayText = fullText.replace(/__META__:.*/, '');
             if (window.marked && window.DOMPurify) {
                 botContentDiv.innerHTML = DOMPurify.sanitize(marked.parse(displayText));
             } else {
                 botContentDiv.innerText = displayText;
             }
-
             scrollToBottom();
         }
 
         const metaMatch = fullText.match(/__META__:(\{.*?\})/);
         if (metaMatch) {
             try {
-                // Try parse with single quotes replaced to double quotes
-                const meta = JSON.parse(metaMatch[1].replace(/'/g, '"'));
+                const meta = JSON.parse(metaMatch[1]);
                 fullText = fullText.replace(/__META__:.*/, '').trim();
                 currentSessionId = meta.session_id;
                 window.history.pushState({}, '', `?session_id=${meta.session_id}`);
@@ -82,7 +71,6 @@ async function sendMessage() {
             } catch(e) { console.warn('Meta parse error', e); }
         }
 
-        // Final render after strip
         if (window.marked && window.DOMPurify) {
             botContentDiv.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
         } else {
@@ -188,22 +176,15 @@ function handleNewSession(sessionId) {
 function appendMessage(sender, htmlContent) {
     const div = document.createElement('div');
     div.className = `msg-container msg-container-${sender}`;
-    
-    let avatarHtml = '';
-    if (sender === 'bot') {
-        avatarHtml = `<div class="msg-avatar bot-avatar"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>`;
-    }
-    
-    let userAvatarHtml = '';
-    if (sender === 'user') {
-        userAvatarHtml = `<div class="msg-avatar user-avatar"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
-    }
 
-    div.innerHTML = `${sender === 'bot' ? avatarHtml : ''}
+    const botAvatar = `<div class="msg-avatar bot-avatar"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>`;
+    const userAvatar = `<div class="msg-avatar user-avatar"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
+
+    div.innerHTML = `${sender === 'bot' ? botAvatar : ''}
                      <div class="msg msg-${sender}">
                          <div class="msg-content">${htmlContent}</div>
                      </div>
-                     ${sender === 'user' ? userAvatarHtml : ''}`;
+                     ${sender === 'user' ? userAvatar : ''}`;
     chatBox.appendChild(div);
     scrollToBottom();
     return div;
@@ -211,10 +192,7 @@ function appendMessage(sender, htmlContent) {
 
 function scrollToBottom() {
     if (!chatBox) return;
-
-    requestAnimationFrame(() => {
-        chatBox.scrollTop = chatBox.scrollHeight;
-    });
+    requestAnimationFrame(() => { chatBox.scrollTop = chatBox.scrollHeight; });
 }
 
 function handleEnter(event) {
@@ -231,15 +209,13 @@ function showLogoutConfirmation() {
 
 function openRenameModal(e, id, title) {
     e.stopPropagation();
-    const modal = document.getElementById('renameModal');
     document.getElementById('newTitleInput').value = title;
     document.getElementById('renameForm').action = `/rename_chat/${id}/`;
-    modal.style.display = 'flex';
+    document.getElementById('renameModal').style.display = 'flex';
 }
 
 window.onclick = function (e) {
-    const modals = ['renameModal', 'logoutConfirmModal', 'settingsModal'];
-    modals.forEach(id => {
+    ['renameModal', 'logoutConfirmModal', 'settingsModal'].forEach(id => {
         const modal = document.getElementById(id);
         if (e.target === modal) modal.style.display = 'none';
     });
@@ -247,11 +223,8 @@ window.onclick = function (e) {
 
 function toggleUrlInput() {
     const wrapper = document.getElementById('urlInputWrapper');
-    const input = document.getElementById('urlInput');
-
     wrapper.classList.toggle('visible');
-
     if (wrapper.classList.contains('visible')) {
-        input.focus();
+        document.getElementById('urlInput').focus();
     }
 }

@@ -33,14 +33,11 @@ from langchain_core.output_parsers import StrOutputParser
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 # === GLOBAL MODEL LOADING ===
-print("[WAIT] Loading Neural Core...")
 try:
     GLOBAL_EMBEDDINGS = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
-    CHAT_LLM = ChatGroq(temperature=0.6, model_name="llama-3.1-8b-instant", streaming=True)
+    CHAT_LLM = ChatGroq(temperature=0.2, model_name="llama-3.1-8b-instant", streaming=True)
     ROUTER_LLM = ChatGroq(temperature=0.0, model_name="llama-3.1-8b-instant")
-    print("[OK] Neural Core Online!")
-except Exception as e:
-    print(f"[ERROR] Core Failure: {e}")
+except Exception:
     GLOBAL_EMBEDDINGS = None
     CHAT_LLM = None
     ROUTER_LLM = None
@@ -64,11 +61,8 @@ def load_single_file(file_path):
     try:
         # --- CASE A: WEB URLS ---
         if file_path.startswith("http://") or file_path.startswith("https://"):
-            print(f"[WEB] Analyzing URL: {file_path}")
-            
             # Check if URL is an image
             if any(file_path.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp']):
-                print("[IMAGE] Remote Image Detected. Downloading & OCR...")
                 try:
                     response = requests.get(file_path, headers=HEADERS, timeout=10)
                     image = Image.open(BytesIO(response.content))
@@ -76,16 +70,14 @@ def load_single_file(file_path):
                     if text.strip():
                         return [Document(page_content=text, metadata={"source": file_path, "type": "image_url"})]
                     return []
-                except Exception as e:
-                    print(f"[ERROR] Failed to process remote image: {e}")
+                except Exception:
                     return []
             
             # Treat as Standard Website
             try:
                 loader = WebBaseLoader(file_path, header_template=HEADERS)
                 return loader.load()
-            except Exception as e:
-                print(f"[ERROR] Web Load Error: {e}")
+            except Exception:
                 return []
 
         # --- CASE B: LOCAL FILES ---
@@ -93,14 +85,12 @@ def load_single_file(file_path):
         
         # 1. Local Images
         if ext in ['.png', '.jpg', '.jpeg']:
-            print(f"[IMAGE] Local Image Detected: {file_path}")
             try:
                 text = pytesseract.image_to_string(Image.open(file_path))
                 if text.strip():
                     return [Document(page_content=text, metadata={"source": file_path})]
                 return []
-            except Exception as e:
-                print(f"OCR Error: {e}")
+            except Exception:
                 return []
 
         # 2. Local Documents
@@ -148,8 +138,7 @@ def load_single_file(file_path):
                 return []
         else: return TextLoader(file_path, autodetect_encoding=True).load()
 
-    except Exception as e:
-        print(f"[WARN] Failed to load {file_path}: {e}")
+    except Exception:
         return []
 
 def process_files_bulk(file_paths, session_id):
@@ -184,22 +173,15 @@ def process_files_bulk(file_paths, session_id):
                 vector_store = FAISS.load_local(db_path, GLOBAL_EMBEDDINGS, allow_dangerous_deserialization=True)
                 vector_store.add_documents(docs)
                 vector_store.save_local(db_path)
-            except Exception as e:
-                print(f"[WARN] WARNING: FAISS index load failed for session {session_id}: {e}")
-                print(f"[WARN] Rebuilding index from scratch — previously indexed content for this session is LOST.")
+            except Exception:
                 vector_store = FAISS.from_documents(docs, GLOBAL_EMBEDDINGS)
                 vector_store.save_local(db_path)
         else:
             vector_store = FAISS.from_documents(docs, GLOBAL_EMBEDDINGS)
             vector_store.save_local(db_path)
         return True
-    except Exception as e:
-        print(f"[ERROR] Indexing Failed: {e}")
+    except Exception:
         return False
-
-def process_file(file_path, session_id):
-    """Legacy wrapper for backward compatibility."""
-    return process_files_bulk([file_path], session_id)
 
 # =========================================================
 #  2. STREAMING GENERATION ENGINE
@@ -208,7 +190,6 @@ def process_file(file_path, session_id):
 def perform_web_search(query):
     try:
         search = DuckDuckGoSearchResults(num_results=4)
-        print(f"[WEB_SEARCH] Searching Web: {query}")
         return search.run(query)
     except Exception as e:
         return f"Web search failed: {e}"
@@ -231,23 +212,26 @@ def get_answer(query, session_id):
             "If the user is ONLY making small talk, greeting you, or saying thanks, reply ONLY with 'CHAT'."
         )
         intent = (router_prompt | router_llm | StrOutputParser()).invoke({"question": query}).strip().upper()
-    except:
+    except Exception:
         intent = "QUERY"
-
-    print(f"[AI_ROUTER] Intent Detected: {intent}")
 
     # === PATH A: CASUAL CHAT ===
     if "CHAT" in intent:
         prompt = ChatPromptTemplate.from_template(
             """
-            You are a witty, intelligent AI assistant.
-            History: {history}
+            You are a highly capable, precise, and professional AI assistant.
+            Current Date: {date}
+            
+            Conversation History: 
+            {history}
+            
             User: {question}
-            Reply naturally and helpfully.
+            
+            Reply naturally, concisely, and use clean markdown formatting (like bold text or bullet points where appropriate). Do not use filler language.
             """
         )
         chain = prompt | chat_llm | StrOutputParser()
-        for chunk in chain.stream({"history": history_text, "question": query}):
+        for chunk in chain.stream({"date": current_date, "history": history_text, "question": query}):
             yield chunk
         return
 
@@ -274,14 +258,16 @@ def get_answer(query, session_id):
         use_web = True
 
     if use_web:
-        print("[WARN] Docs irrelevant or empty. Switching to Web Search.")
         source_type = "Web Search"
         context_text = perform_web_search(query)
 
     # Final Generation
     system_prompt = """
-    You are a highly capable AI assistant.
-    Current Date: {date}
+    You are an expert, precision-focused AI assistant.
+    Current Date: {date}. Always use this date context to ensure your answers are up-to-date and relevant.
+    
+    Conversation History:
+    {history}
     
     Context ({source}):
     {context}
@@ -289,10 +275,10 @@ def get_answer(query, session_id):
     User Question: {question}
     
     Instructions:
-    1. Answer accurately using the context provided.
-    2. If context is from Web, synthesize the facts and use the provided snippets to give a comprehensive answer, including Markdown links `[Source Name](URL)` to the sources at the end.
-    3. If context is from Knowledge Base, cite documents.
-    4. Be helpful, professional, and detailed.
+    1. Precision & Clarity: Provide direct, concise, and highly accurate answers. Eliminate fluff, repetitive intros, and filler words.
+    2. Clean Formatting: Heavily utilize Markdown. Structure your answers with clear headings (`###`), bullet points, and **bold text** for key terms to make the information highly scannable and readable.
+    3. Knowledge Strategy: First, base your answers STRICTLY on the provided Context. If the context does not contain the answer, you may use your General Knowledge if you are absolutely certain. If you are uncertain or the topic requires specific user data, explicitly state: "I don't know. Please upload relevant documents for this topic."
+    4. Sources: At the very end of your response, provide the citations as simple Markdown links separated by spaces, like this: `[Source 1](URL1) [Source 2](URL2)`. Do not use a bulleted list for sources, just inline links.
     """
     
     final_prompt = ChatPromptTemplate.from_template(system_prompt)
@@ -301,6 +287,7 @@ def get_answer(query, session_id):
     for chunk in chain.stream({
         "date": current_date,
         "source": source_type,
+        "history": history_text,
         "context": context_text,
         "question": query
     }):
@@ -316,7 +303,7 @@ def clear_data(session_id):
 def generate_chat_title(user_message, bot_response):
     try:
         llm = ChatGroq(temperature=0.3, model_name="llama-3.1-8b-instant")
-        prompt = f"Summarize into a 4-word title:\nUser: {user_message}\nAI: {bot_response}"
+        prompt = f"Determine the core topic of this conversation and create a concise 2-4 word title for it. Return ONLY the title with no quotes or extra text.\nUser: {user_message}\nAI: {bot_response}"
         return llm.invoke(prompt).content.strip().replace('"', '')[:50]
-    except:
+    except Exception:
         return user_message[:30]

@@ -159,12 +159,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default Primary Key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Production Security (Uncomment these when deploying with HTTPS)
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-
 
 JAZZMIN_SETTINGS = {
     "site_title": "RecallAI",

@@ -157,15 +157,60 @@
     scroll-behavior: smooth;
 }
 
+.msg-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 20px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.msg-container-user {
+    justify-content: flex-end;
+}
+
+.msg-container-bot {
+    justify-content: flex-start;
+}
+
+.msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-glow);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.bot-avatar {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    color: #a5b4fc;
+}
+
+[data-theme="light"] .bot-avatar {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(79, 70, 229, 0.3);
+    color: #4f46e5;
+}
+
+.user-avatar {
+    background: var(--primary-gradient);
+}
+
 .msg {
-    max-width: 85%;
-    padding: 20px 28px;
+    max-width: 75%;
+    padding: 16px 24px;
     font-size: clamp(0.9rem, 1.5vw, 1rem);
-    /* Fluid font size */
     line-height: 1.6;
     font-family: 'Outfit', sans-serif;
     position: relative;
-    animation: fadeIn 0.3s ease-out;
 }
 
 .msg ul,
@@ -179,23 +224,51 @@
 }
 
 .msg-bot {
-    align-self: flex-start;
     background: var(--bg-glass-light);
-    /* Better for light mode */
-    /* True Glass */
-    border: 1px solid var(--border-glass);
-    border-radius: 4px 24px 24px 24px;
+    border: 1px solid var(--border-light);
+    border-radius: 20px 20px 20px 4px;
     color: var(--text-main);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .msg-user {
-    align-self: flex-end;
     background: var(--primary-gradient);
     color: white;
-    /* Keep white for user msg on gradient */
-    border-radius: 24px 4px 24px 24px;
+    border-radius: 20px 20px 4px 20px;
     box-shadow: var(--shadow-glow);
+}
+
+/* Link Styling for bot messages (Sources) */
+.msg-bot a {
+    display: inline-block;
+    padding: 4px 12px;
+    margin: 6px 6px 0 0;
+    background: rgba(14, 165, 233, 0.15); /* cyan tint */
+    color: #38bdf8;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+[data-theme="light"] .msg-bot a {
+    color: #0284c7;
+    background: rgba(14, 165, 233, 0.1);
+    border-color: rgba(14, 165, 233, 0.2);
+}
+
+.msg-bot a:hover {
+    background: rgba(14, 165, 233, 0.3);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+}
+
+[data-theme="light"] .msg-bot a:hover {
+    color: #0c4a6e;
 }
 
 /* Typing Indicator */
@@ -239,20 +312,83 @@
     background: var(--bg-glass-heavy);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-glass);
-    border-radius: 20px;
-    padding: 10px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 24px;
+    padding: 12px 18px;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: var(--shadow-card);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.input-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: var(--primary-gradient);
+    z-index: -1;
+    border-radius: 26px;
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .input-wrapper:focus-within {
-    border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 25px 50px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(139, 92, 246, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 20px rgba(139, 92, 246, 0.2);
+    border-color: transparent;
+}
+
+.input-wrapper:focus-within::before {
+    opacity: 1;
+}
+
+.input-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: var(--bg-glass-heavy);
+    border-radius: 22px;
+    z-index: 1;
+}
+
+/* Suggestion Chips */
+.suggestion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.chip {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(4px);
+}
+
+[data-theme="light"] .chip {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #6366f1;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+[data-theme="light"] .chip:hover {
+    background: rgba(0, 0, 0, 0.08);
 }
 
 .chat-input {
@@ -318,10 +454,18 @@
     margin: 15px 0;
 }
 
+[data-theme="light"] .msg-bot pre {
+    background: rgba(0, 0, 0, 0.05);
+}
+
 .msg-bot code {
     font-family: 'Fira Code', monospace;
     font-size: 0.95em;
     color: #e2e8f0;
+}
+
+[data-theme="light"] .msg-bot code {
+    color: #1e293b;
 }
 
 /* --- FIX 1: TYPING INDICATOR (The "Thinking" Animation) --- */
@@ -335,6 +479,10 @@
     border-bottom-left-radius: 2px;
     font-size: 0.9rem;
     color: var(--text-muted);
+}
+
+[data-theme="light"] .typing-indicator {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .typing-indicator::after {
@@ -371,6 +519,10 @@
     border-top: 1px solid var(--border-glass);
 }
 
+[data-theme="light"] .input-zone {
+    background: rgba(255, 255, 255, 0.6);
+}
+
 .url-input-wrapper {
     display: flex;
     align-items: center;
@@ -397,6 +549,10 @@
     border-radius: 12px;
     font-family: inherit;
     font-size: 0.9rem;
+}
+
+[data-theme="light"] .url-input {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .url-input:focus {

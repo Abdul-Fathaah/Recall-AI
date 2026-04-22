@@ -9,10 +9,11 @@ if (typeof currentSessionId === 'undefined') {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll('.msg-bot').forEach(msg => {
-        if (!msg.innerHTML.includes('<') && window.marked && window.DOMPurify) {
-            const parsed = marked.parse(msg.innerHTML.trim());
-            msg.innerHTML = DOMPurify.sanitize(parsed);
+    // Render saved bot messages from DB (marked with data-markdown)
+    document.querySelectorAll('[data-markdown="true"] .msg-content').forEach(el => {
+        if (window.marked && window.DOMPurify) {
+            const parsed = marked.parse(el.textContent.trim());
+            el.innerHTML = DOMPurify.sanitize(parsed);
         }
     });
     scrollToBottom();
@@ -186,8 +187,23 @@ function handleNewSession(sessionId) {
 
 function appendMessage(sender, htmlContent) {
     const div = document.createElement('div');
-    div.className = `msg msg-${sender}`;
-    div.innerHTML = `<div class="msg-content">${htmlContent}</div>`;
+    div.className = `msg-container msg-container-${sender}`;
+    
+    let avatarHtml = '';
+    if (sender === 'bot') {
+        avatarHtml = `<div class="msg-avatar bot-avatar"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>`;
+    }
+    
+    let userAvatarHtml = '';
+    if (sender === 'user') {
+        userAvatarHtml = `<div class="msg-avatar user-avatar"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
+    }
+
+    div.innerHTML = `${sender === 'bot' ? avatarHtml : ''}
+                     <div class="msg msg-${sender}">
+                         <div class="msg-content">${htmlContent}</div>
+                     </div>
+                     ${sender === 'user' ? userAvatarHtml : ''}`;
     chatBox.appendChild(div);
     scrollToBottom();
     return div;

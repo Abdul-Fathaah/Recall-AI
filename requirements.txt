@@ -13,3 +13,8 @@ pymupdf
 docx2txt
 openpyxl
 unstructured
+python-pptx
+Pillow
+requests
+duckduckgo-search
+django-jazzmin

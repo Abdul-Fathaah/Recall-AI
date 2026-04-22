@@ -16,10 +16,11 @@
 
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
+    --danger: #ef4444;
 
     /* Gradients */
-    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-    /* Indigo -> Violet -> Fuchsia */
+    --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #8b5cf6 100%);
+    /* Cyan -> Indigo -> Violet */
     --text-gradient: linear-gradient(to right, #e2e8f0, #ffffff);
 
     /* AURORA NEBULA BACKGROUND (Restored) */
@@ -51,8 +52,8 @@
     /* Slate 900 */
     --text-muted: #64748b;
 
-    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    /* Stronger Indigo/Violet */
+    --primary-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+    /* Sky Blue to Indigo */
     --text-gradient: linear-gradient(to right, #1e293b, #4f46e5);
     /* Dark to Indigo */
 

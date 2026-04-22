@@ -11,8 +11,7 @@
     <script src="{% static 'js/theme.js' %}?v=3.0"></script>
 </head>
 
-<body class="auth-body" style="background-image: linear-gradient(var(--bg-backdrop-overlay), var(--bg-backdrop-overlay)), url('https://dummyimage.com/1920x1080/1e293b/a5b4fc.png?text=Auth+Background+(Update+Me)'); background-size: cover; background-position: center; background-attachment: fixed; animation: none;">
-    <!-- Replace url(...) with your actual image path: url('{% static "images/auth-bg.png" %}') -->
+<body class="auth-body" style="background-image: linear-gradient(var(--bg-backdrop-overlay), var(--bg-backdrop-overlay)), url('{% static "images/auth-bg.png" %}'); background-size: cover; background-position: center; background-attachment: fixed; animation: none;">
 
     <div class="split-container">
         <div class="info-side">
@@ -25,7 +24,8 @@
                 <div id="quote-text" class="quote-text" style="font-style: normal; margin-bottom: 10px;">
                     "Join the Intelligence Revolution."
                 </div>
-                <div id="quote-author" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-transform: uppercase;">
+                <div id="quote-author"
+                    style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-transform: uppercase;">
                     Create your personal knowledge hub today. Upload, analyze, and retain information faster than ever
                     before.
                 </div>

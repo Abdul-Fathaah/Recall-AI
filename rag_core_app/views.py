@@ -1,10 +1,10 @@
 import os
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, StreamingHttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from .rag_utils import get_answer, process_files_bulk, clear_data, generate_chat_title
 from .forms import SignUpForm, UserUpdateForm, UserLoginForm, DocumentForm
@@ -43,6 +43,7 @@ def user_login(request):
         form = UserLoginForm()
     return render(request, 'login.html', {'form': form})
 
+@require_POST
 def user_logout(request):
     logout(request)
     return redirect('landing')
@@ -131,7 +132,6 @@ def upload_api(request):
         # B. Handle URL Input (New Feature)
         input_url = request.POST.get('url')
         if input_url:
-            print(f"[LINK] Processing URL: {input_url}")
             process_queue.append(input_url)
             results.append({'name': input_url, 'status': 'URL Queued'})
         
@@ -208,7 +208,9 @@ def chat_api(request):
                     new_title = generate_chat_title(user_msg, full_response[:300])
                     session.title = new_title
                     session.save()
-                    yield f"\\n__META__:{{'session_id':'{session.id}','title':'{new_title}'}}"
+                    import json as _json
+                    meta_payload = _json.dumps({"session_id": str(session.id), "title": new_title})
+                    yield f"\n__META__:{meta_payload}"
                     
                     
             except Exception as e:
@@ -233,19 +235,14 @@ def delete_chat_session(request, session_id):
     if request.method == "POST":
         session = get_object_or_404(ChatSession, id=session_id, user=request.user)
 
-        # Delete uploaded files from disk before deleting the session
-        # (CASCADE handles DB rows, but not the actual files on disk)
         for doc in session.documents.all():
             if doc.file and os.path.exists(doc.file.path):
                 try:
                     os.remove(doc.file.path)
-                except OSError as e:
-                    print(f"[WARN] Could not delete file {doc.file.path}: {e}")
+                except OSError:
+                    pass
 
-        # Remove FAISS index for this session
         clear_data(session.id)
-
-        # Delete session (CASCADE removes Document + ChatMessage rows)
         session.delete()
         return redirect('home')
     return redirect('home')
